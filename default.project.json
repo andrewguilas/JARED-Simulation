@@ -1,0 +1,12 @@
+{
+  "name": "jared-simulation",
+  "tree": {
+    "$className": "DataModel",
+
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    }
+  }
+}
