@@ -12,13 +12,18 @@ local function main()
 
 	newCafeteria:setRoom(
 		newRoom,
-		newRoom.SpawnArea,
-		{Start = newRoom.ServingArea.ServingAreaStart, End = newRoom.ServingArea.ServingAreaEnd},
-		{Start = newRoom.DisposalArea.DisposalAreaStart, End = newRoom.DisposalArea.DisposalAreaEnd}
+		newRoom.Floor.SpawnArea,
+		{Start = newRoom.ServingArea.Path.ServingAreaStart, End = newRoom.ServingArea.Path.ServingAreaEnd},
+		{Start = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaEnd}
 	)
 
-	for _, seat in ipairs(newRoom.Seats:GetChildren()) do
-        newCafeteria:addSeat(seat)
+	for _, table in ipairs(newRoom.Tables:GetChildren()) do
+		for _, seat in ipairs(table:GetChildren()) do
+			if seat:IsA("Seat") then
+				seat.Disabled = true
+				newCafeteria:addSeat(seat)
+			end
+		end
     end
 	
 	newCafeteria:start()

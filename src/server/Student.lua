@@ -29,11 +29,14 @@ function module.new()
 end
 
 function module:enterRoom(spawnArea)	
+	local offsetX = math.random(-(spawnArea.Size.X / 2 - 5), (spawnArea.Size.X / 2 - 5))
+	local offsetZ = math.random(-(spawnArea.Size.Z / 2 - 5), (spawnArea.Size.Z / 2 - 5))
+	local spawnPosition = spawnArea.Position + Vector3.new(offsetX, 5, offsetZ)
 	self.Character.Parent = npcStorage
-	self.Character:MoveTo(spawnArea.Position)
+	self.Character:MoveTo(spawnPosition)
 end
 
-function module:getFood(servingArea)	
+function module:getFood(servingArea)
 	self:walkTo(servingArea.Start)
 	
 	self:setWalkSpeed(CONFIGURATION.ServingAreaWalkSpeed)
@@ -48,7 +51,8 @@ function module:findSeat(seats)
 			if seat.Owner == nil then
 				seat.Owner = self.Character
 				self.Seat = seat
-				self.Seat.Seat.BrickColor = BrickColor.new("Black")
+				self.Seat.Seat.Material = Enum.Material.Neon
+				self.Seat.Seat.BrickColor = BrickColor.new("White")
 				break
 			end
 		end
@@ -83,7 +87,8 @@ function module:exitRoom(spawnArea)
 	-- Cleanup
 	if self.Seat then
 		self.Seat.Owner = nil
-		self.Seat.Seat.BrickColor = BrickColor.new("White")
+		self.Seat.Seat.Material = Enum.Material.Wood
+		self.Seat.Seat.BrickColor = BrickColor.new("Fawn brown")
 	end
 end
 
