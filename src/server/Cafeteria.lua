@@ -20,17 +20,18 @@ function module.new()
 		DisposalArea = {
 			Start = nil,
 			End = nil,
-		}
+		},
+		Students = {},
 	}, module)
 	
 	return self
 end
 
-function module:setRoom(room, spawnArea, servingArea, disposalArea)
+function module:setRoom(room, spawnArea, servingArea, disposalAreas)
 	self.Room = room
 	self.SpawnArea = spawnArea
 	self.ServingArea = servingArea
-	self.DisposalArea = disposalArea
+	self.DisposalAreas = disposalAreas
 end
 
 function module:addSeat(seat)
@@ -42,12 +43,15 @@ end
 
 function module:spawnStudent()
 	local newStudent = student.new()
+	table.insert(self.Students, newStudent)
+	newStudent.Character.Name = "Student" .. tostring(#self.Students)
 
 	newStudent:enterRoom(self.SpawnArea)
 	newStudent:getFood(self.ServingArea)
 	newStudent:findSeat(self.Seats)
 	task.wait(CONFIGURATION.EatingDuration)
-	newStudent:disposeTrash(self.DisposalArea)
+
+	newStudent:disposeTrash(self.DisposalAreas)
 	newStudent:exitRoom(self.SpawnArea)
 
 end
@@ -56,10 +60,8 @@ function module:start()
 	task.wait(CONFIGURATION.SimulationDelay)
 
 	for count = 1, CONFIGURATION.MaxCapacity, 1 do
-		print("Spawning student " .. tostring(count) .. "...")
 		local spawnStudentTask = coroutine.create(self.spawnStudent)
 		coroutine.resume(spawnStudentTask, self)
-
 		task.wait(CONFIGURATION.SpawnDelay)
 	end
 

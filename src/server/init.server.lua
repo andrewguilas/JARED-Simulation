@@ -14,7 +14,10 @@ local function main()
 		newRoom,
 		newRoom.Floor.SpawnArea,
 		{Start = newRoom.ServingArea.Path.ServingAreaStart, End = newRoom.ServingArea.Path.ServingAreaEnd},
-		{Start = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaEnd}
+		{
+			{Start = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaEnd},
+			{Start = newRoom.DisposalArea.DisposalArea2.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalArea2.Path.DisposalAreaEnd},
+		}
 	)
 
 	for _, table in ipairs(newRoom.Tables:GetChildren()) do

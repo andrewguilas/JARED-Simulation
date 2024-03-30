@@ -1,9 +1,9 @@
 return {
     Cafeteria = {
         SimulationDelay = 3,
-        SpawnDelay = 0.5,
-        EatingDuration = 3,
-        MaxCapacity = 30,
+        SpawnDelay = 0.25,
+        EatingDuration = 30,
+        MaxCapacity = 150,
     },
     Student = {
         DefaultWalkSpeed = 16,
