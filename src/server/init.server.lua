@@ -2,12 +2,18 @@
 
 local Workspace = game:GetService("Workspace")
 local ServerScriptService = game:GetService("ServerScriptService")
+local StarterGui = game:GetService("StarterGui")
 
 local Cafeteria = require(ServerScriptService.Server.Cafeteria)
+local UIHandler = require(ServerScriptService.Server.UI)
 
 local newRoom = Workspace.Room
+local npcStorage = Workspace.NPCs
+local UI = StarterGui.UI
 
 local function main()
+	UIHandler.new(UI, npcStorage)
+
 	local newCafeteria = Cafeteria.new()
 
 	newCafeteria:setRoom(
