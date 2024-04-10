@@ -38,7 +38,19 @@ function module:addSeat(seat)
 	table.insert(self.Seats, {
 		Seat = seat,
 		Owner = nil,
+		Table = seat.Parent,
 	})
+end
+
+
+
+
+function module:formGroup()
+
+end
+
+function module:spawnGroup()
+
 end
 
 function module:spawnStudent()
@@ -52,17 +64,22 @@ function module:spawnStudent()
 
 	newStudent:enterRoom(self.SpawnArea)
 	newStudent:getFood(self.ServingArea)
-	task.wait(CONFIGURATION.SERVING_DURATION)
 
 	newStudent:findSeat(self.Seats)
-	task.wait(CONFIGURATION.EATING_DURATION)
 
 	newStudent:disposeTrash(self.DisposalAreas)
-	task.wait(CONFIGURATION.DISPOSING_DURATION)
 
 	newStudent:exitRoom(self.SpawnArea)
 
 end
+
+function module:findTable()
+
+end
+
+
+
+
 
 function module:start()	
 	task.wait(CONFIGURATION.SIMULATION_DELAY)

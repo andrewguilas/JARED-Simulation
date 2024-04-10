@@ -40,12 +40,12 @@ function module:enterRoom(spawnArea)
 	self.Character:MoveTo(spawnPosition)
 end
 
-function module:getFood(servingArea)
+function module:getFood(servingAreas)
 	self:createPath("PathB")
-	self:walkTo(servingArea.Start)
-	
-	self:createPath("PathB")
-	self:walkTo(servingArea.End)
+	for _, servingAreaPoint in ipairs(servingAreas) do
+		self:walkTo(servingAreaPoint)
+		task.wait(CONFIGURATION.SERVING_DURATION)
+	end
 
 	local newFood = foodTemplate:Clone()
 	newFood.Parent = self.Character
@@ -74,6 +74,8 @@ function module:findSeat(seats)
 	self.Seat = randomSeat
 	self:walkTo(self.Seat.Seat)
 	self.Seat.Seat:Sit(self.Humanoid)
+
+	task.wait(CONFIGURATION.EATING_DURATION)
 end
 
 function module:disposeTrash(disposalAreas)
@@ -96,9 +98,8 @@ function module:disposeTrash(disposalAreas)
 	-- print("Closest disposal area is " .. closestDisposalArea.Start.Parent.Parent.Name)
 
 	self:walkTo(closestDisposalArea.Start)
-
 	self:walkTo(closestDisposalArea.End)
-
+	task.wait(CONFIGURATION.DISPOSING_DURATION)
 	self.Character.Food:Destroy()
 end
 

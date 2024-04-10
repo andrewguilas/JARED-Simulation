@@ -19,16 +19,22 @@ local function main()
 	newCafeteria:setRoom(
 		newRoom,
 		newRoom.Floor.SpawnArea,
-		{Start = newRoom.ServingArea.Path.ServingAreaStart, End = newRoom.ServingArea.Path.ServingAreaEnd},
 		{
-			{Start = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalArea1.Path.DisposalAreaEnd},
-			{Start = newRoom.DisposalArea.DisposalArea2.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalArea2.Path.DisposalAreaEnd},
+			newRoom.ServingArea.Path.Point1,
+			newRoom.ServingArea.Path.Point2,
+			newRoom.ServingArea.Path.Point3,
+			newRoom.ServingArea.Path.Point4,
+		},
+		{
+			{Start = newRoom.DisposalArea.DisposalA.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalA.Path.DisposalAreaEnd},
+			{Start = newRoom.DisposalArea.DisposalB.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalB.Path.DisposalAreaEnd},
 		}
 	)
 
 	for _, table in ipairs(newRoom.Tables:GetChildren()) do
-		for _, seat in ipairs(table:GetChildren()) do
-			if seat:IsA("Seat") then
+		for _, chair in ipairs(table:GetChildren()) do
+			local seat = chair:FindFirstChildWhichIsA("Seat")
+			if seat then
 				seat.Disabled = true
 				newCafeteria:addSeat(seat)
 			end
