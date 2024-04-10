@@ -7,7 +7,7 @@ local Workspace = game:GetService("Workspace")
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
-local Configuration = require(ServerScriptService.Server.Configuration)
+local CONFIGURATION = require(ServerScriptService.Server.Configuration).UI
 
 function module.new(UI, npcStorage)	
 	local self = setmetatable({
@@ -19,7 +19,7 @@ function module.new(UI, npcStorage)
         Frames = {}
     }, module)
 
-    if Configuration.UI.Enabled then
+    if CONFIGURATION.ENABLED then
         npcStorage.ChildAdded:Connect(function(newStudent)
             self:createStudent(newStudent)
         end)
@@ -31,7 +31,7 @@ function module.new(UI, npcStorage)
         coroutine.wrap(function()
             while true do
                 self:update()
-                task.wait(Configuration.UI.UpdateDelay)
+                task.wait(CONFIGURATION.UpdateDelay)
             end
         end)()
     end

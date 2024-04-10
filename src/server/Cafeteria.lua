@@ -3,7 +3,7 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local student = require(ServerScriptService.Server.Student)
-local CONFIGURATION = require(ServerScriptService.Server.Configuration).Cafeteria
+local CONFIGURATION = require(ServerScriptService.Server.Configuration).CAFETERIA
 
 local module = {}
 module.__index = module
@@ -42,14 +42,17 @@ function module:addSeat(seat)
 end
 
 function module:spawnStudent()
+	local id = #self.Students
 	local newStudent = student.new()
 	table.insert(self.Students, newStudent)
-	newStudent.Character.Name = "Student" .. tostring(#self.Students)
+	newStudent.Character.Name = "Student" .. tostring(id)
+	newStudent.States.ID = id
+	newStudent.Character:SetAttribute("ID", id)
 
 	newStudent:enterRoom(self.SpawnArea)
 	newStudent:getFood(self.ServingArea)
 	newStudent:findSeat(self.Seats)
-	task.wait(CONFIGURATION.EatingDuration)
+	task.wait(CONFIGURATION.EATING_DURATION)
 
 	newStudent:disposeTrash(self.DisposalAreas)
 	newStudent:exitRoom(self.SpawnArea)
@@ -57,12 +60,12 @@ function module:spawnStudent()
 end
 
 function module:start()	
-	task.wait(CONFIGURATION.SimulationDelay)
+	task.wait(CONFIGURATION.SIMULATION_DELAY)
 
-	for count = 1, CONFIGURATION.MaxCapacity, 1 do
+	for count = 1, CONFIGURATION.SPAWN_AMOUNT, 1 do
 		local spawnStudentTask = coroutine.create(self.spawnStudent)
 		coroutine.resume(spawnStudentTask, self)
-		task.wait(CONFIGURATION.SpawnDelay)
+		task.wait(CONFIGURATION.SPAWN_DELAY)
 	end
 
 end

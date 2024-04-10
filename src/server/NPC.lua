@@ -1,8 +1,13 @@
 -- Contains default NPC methods
 
 local PathFindingService = game:GetService("PathfindingService")
+local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 local Debris = game:GetService("Debris")
+
+local CONFIGURATION = require(ServerScriptService.Server.Configuration).STUDENT
+
+local npcStorage = Workspace.NPCs
 
 local module = {}
 module.__index = module
@@ -23,6 +28,10 @@ function module.new()
 			PathB = 1,
 			PathC = 1,
 			PathD = 1,
+		},
+		States = {
+			MoveState = "WALK",
+			ID = nil,
 		}
     }, module)
 
@@ -72,6 +81,34 @@ function module:walkTo(destinationPart)
 			self:destroyWaypoints()
 			self:walkTo(destinationPart)
 			return
+		end
+
+		local otherNPC, distance = self:checkCollision()
+		if otherNPC then
+			if distance < CONFIGURATION.STOP_DISTANCE then
+				-- close collision, slow down
+				print("Detected collision, slowing down...")
+				self:setWalkSpeed(CONFIGURATION.SLOW_WALK_SPEED)
+			elseif distance < CONFIGURATION.STOP_DISTANCE then
+				print("Detected collision, stopping...")
+				-- imminent collision, stop
+				while true do
+					otherNPC, distance = self:checkCollision()
+					if otherNPC == nil or distance >= CONFIGURATION.STOP_DISTANCE then
+						break
+					end
+					task.wait(CONFIGURATION.STOP_DELAY)
+				end
+
+				-- close collision, slow down
+				self:setWalkSpeed(CONFIGURATION.SLOW_WALK_SPEED)
+			else
+				-- no collision
+				self:setWalkSpeed(CONFIGURATION.DEFAULT_WALK_SPEED)
+			end
+		else
+			-- no collision
+			self:setWalkSpeed(CONFIGURATION.DEFAULT_WALK_SPEED)
 		end
 
 		self.Humanoid:MoveTo(waypoint.Position)
@@ -125,6 +162,26 @@ end
 function module:destroyWaypoints()
 	for _, waypointPart in ipairs(self.WaypointParts) do
 		waypointPart:Destroy()
+	end
+end
+
+function module:checkCollision()
+	local rayOrigin = self.Character.Torso.CFrame.p
+	local rayDirection = self.Character.Torso.CFrame.lookVector * 10
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {npcStorage}
+	raycastParams.FilterType = Enum.RaycastFilterType.Include
+
+	local raycastResult = Workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+	if raycastResult then
+		local otherNPC = raycastResult.Instance.Parent
+		if otherNPC:FindFirstChild("Humanoid") then
+			-- if other NPC's ID is greater than NPC, then NPC will act
+			local otherNPCID = otherNPC:GetAttribute("ID")
+			if otherNPCID > self.States.ID then
+				return otherNPC, raycastResult.Distance
+			end
+		end
 	end
 end
 

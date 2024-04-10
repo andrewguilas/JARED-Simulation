@@ -5,7 +5,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local NPC = require(ServerScriptService.Server.NPC)
-local CONFIGURATION = require(ServerScriptService.Server.Configuration).Student
+local CONFIGURATION = require(ServerScriptService.Server.Configuration).STUDENT
 
 local npcStorage = Workspace.NPCs
 local studentTemplate = ServerStorage.Student
@@ -42,14 +42,11 @@ function module:getFood(servingArea)
 	self:createPath("PathB")
 	self:walkTo(servingArea.Start)
 	
-	self:setWalkSpeed(CONFIGURATION.ServingAreaWalkSpeed)
 	self:createPath("PathB")
 	self:walkTo(servingArea.End)
 
 	local newFood = foodTemplate:Clone()
 	newFood.Parent = self.Character
-	
-	self:setWalkSpeed(CONFIGURATION.DefaultWalkSpeed)
 end
 
 function module:findSeat(seats)
@@ -98,12 +95,9 @@ function module:disposeTrash(disposalAreas)
 
 	self:walkTo(closestDisposalArea.Start)
 
-	self:setWalkSpeed(CONFIGURATION.DisposalAreaWalkSpeed)
 	self:walkTo(closestDisposalArea.End)
 
 	self.Character.Food:Destroy()
-
-	self:setWalkSpeed(CONFIGURATION.DefaultWalkSpeed)
 end
 
 function module:exitRoom(spawnArea)
