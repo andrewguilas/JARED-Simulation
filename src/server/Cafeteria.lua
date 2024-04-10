@@ -60,15 +60,11 @@ function module:spawnStudent()
 	newStudent.Character.Name = "Student" .. tostring(id)
 	newStudent.States.ID = id
 	newStudent.Character:SetAttribute("ID", id)
-	newStudent.Character:SetAttribute("LookingAt", nil)
 
 	newStudent:enterRoom(self.SpawnArea)
 	newStudent:getFood(self.ServingArea)
-
 	newStudent:findSeat(self.Seats)
-
 	newStudent:disposeTrash(self.DisposalAreas)
-
 	newStudent:exitRoom(self.SpawnArea)
 
 end
@@ -85,8 +81,7 @@ function module:start()
 	task.wait(CONFIGURATION.SIMULATION_DELAY)
 
 	for count = 1, CONFIGURATION.SPAWN_AMOUNT, 1 do
-		local spawnStudentTask = coroutine.create(self.spawnStudent)
-		coroutine.resume(spawnStudentTask, self)
+		coroutine.wrap(self.spawnStudent)(self)
 		task.wait(CONFIGURATION.SPAWN_DELAY)
 	end
 

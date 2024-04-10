@@ -25,12 +25,17 @@ function module.new()
 	self.PrimaryPart = newStudent.PrimaryPart
 	self.Seat = nil
 
+	self.Character:SetAttribute("LookingAt", nil)
+	self.Character:SetAttribute("ActionCode", -1)
+	self.Character:SetAttribute("ShowWaypoints", false)
+
 	coroutine.wrap(self.updateWalkSpeed)(self)
 
 	return self
 end
 
 function module:enterRoom(spawnArea)	
+	self.Character:SetAttribute("ActionCode", 0)
 	self:createPath("PathA")
 
 	local offsetX = math.random(-(spawnArea.Size.X / 2 - 5), (spawnArea.Size.X / 2 - 5))
@@ -41,8 +46,12 @@ function module:enterRoom(spawnArea)
 end
 
 function module:getFood(servingAreas)
+	self.Character:SetAttribute("ActionCode", 1)
 	self:createPath("PathB")
+
 	for _, servingAreaPoint in ipairs(servingAreas) do
+		-- print("Walking to " .. servingAreaPoint.Name)
+
 		self:walkTo(servingAreaPoint)
 		task.wait(CONFIGURATION.SERVING_DURATION)
 	end
@@ -52,6 +61,7 @@ function module:getFood(servingAreas)
 end
 
 function module:findSeat(seats)
+	self.Character:SetAttribute("ActionCode", 2)
 	self:createPath("PathC")
 
 	local remainingSeats = {}
@@ -67,7 +77,9 @@ function module:findSeat(seats)
 	end
 
 	local randomNumber = math.random(1, #remainingSeats)
+
 	-- print("Random seat is seat " .. tostring(randomNumber))
+
 	local randomSeat = remainingSeats[randomNumber]
 	randomSeat.Owner = self.Character
 	
@@ -79,6 +91,7 @@ function module:findSeat(seats)
 end
 
 function module:disposeTrash(disposalAreas)
+	self.Character:SetAttribute("ActionCode", 3)
 	self:createPath("PathD")
 
 	if self.Humanoid.Sit then
@@ -104,6 +117,8 @@ function module:disposeTrash(disposalAreas)
 end
 
 function module:exitRoom(spawnArea)
+	self.Character:SetAttribute("ActionCode", 4)
+
 	self:walkTo(spawnArea)
 	self.Character:Destroy()
 

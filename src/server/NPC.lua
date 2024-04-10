@@ -3,7 +3,6 @@
 local PathFindingService = game:GetService("PathfindingService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
-local Debris = game:GetService("Debris")
 
 local CONFIGURATION = require(ServerScriptService.Server.Configuration).STUDENT
 
@@ -21,13 +20,11 @@ function module.new()
 		WaypointParts = {},
 		AgentParameters = {
 			AgentCanJump = false,
+			WaypointSpacing = 3,
+			AgentRadius = 2,
 			Wood = 3,
 			Concrete = 2,
 			SmoothPlastic = 1,
-			PathA = 1,
-			PathB = 1,
-			PathC = 1,
-			PathD = 1,
 		},
 		States = {
 			MoveState = "WALK",
@@ -40,7 +37,7 @@ end
 
 function module:createPath(pathName)	
 	for name, weight in pairs(self.AgentParameters) do
-		if name == "AgentCanJump" then
+		if table.find({"AgentCanJump", "WaypointSpacing", "AgentRadius"}, name) then
 			continue
 		elseif name == pathName then
 			self.AgentParameters[name] = 0.5
@@ -57,16 +54,28 @@ function module:createPath(pathName)
 end
 
 function module:walkTo(destinationPart)
-	self.Path:ComputeAsync(self.Character.HumanoidRootPart.Position, destinationPart.Position)
+	if CONFIGURATION.LOG then 
+		print(string.format("Student%s: Walking to %s", self.States.ID, destinationPart.Name)) 
+	end
+
+	local destinationPosition = Vector3.new(destinationPart.Position.X, self.Character.HumanoidRootPart.Position.Y, destinationPart.Position.Z)
+	self.Path:ComputeAsync(self.Character.HumanoidRootPart.Position, destinationPosition)
 	if self.Path.Status == Enum.PathStatus.NoPath then
+		if CONFIGURATION.LOG then 
+			print(string.format("Student%s: Walking to %s (no path)", self.States.ID, destinationPart.Name))
+		end
+
+		task.wait(0.5)
 		self:walkTo(destinationPart)
+
 		return
 	end
 
     local waypoints = self.Path:GetWaypoints()
 
-	-- local visualizeWaypointsTask = coroutine.create(self.visualizeWaypoints)
-	-- coroutine.resume(visualizeWaypointsTask, self, waypoints, true)
+	if CONFIGURATION.SHOW_WAYPOINTS or self.Character:GetAttribute("ShowWaypoints") == true then
+		coroutine.wrap(self.visualizeWaypoints)(self, waypoints, true)
+	end
 
 	local blockedConnection
 	blockedConnection = self.Path.Blocked:Connect(function()
@@ -76,22 +85,42 @@ function module:walkTo(destinationPart)
 
 	for _, waypoint in ipairs(waypoints) do
 		if blockedConnection == nil then
-			-- print("Path blocked!")
-			task.wait(1)
+			if CONFIGURATION.LOG then 
+				print(string.format("Student%s: Walking to %s (path blocked)", self.States.ID, destinationPart.Name))
+			end
+
+			task.wait(0.5)
 			self:destroyWaypoints()
 			self:walkTo(destinationPart)
+			
 			return
 		end
 
+		-- 10 second max cooldown to resume walking
+		for sec = 1, 10 * 2 do
+			if self.Humanoid.WalkSpeed ~= 0 then
+				break
+			end
+			task.wait(0.5)
+		end
+
 		self.Humanoid:MoveTo(waypoint.Position)
+
 		local success = self.Humanoid.MoveToFinished:Wait(3)
 		if not success then
-			-- print("Couldn't make it!")
-			blockedConnection:Disconnect()
-			blockedConnection = nil
-			task.wait(1)
+			if CONFIGURATION.LOG then 
+				print(string.format("Student%s: Walking to %s (couldn't make it)", self.States.ID, destinationPart.Name))
+			end
+			
+			if blockedConnection then
+				blockedConnection:Disconnect()
+				blockedConnection = nil
+			end
+
+			task.wait(0.5)
 			self:destroyWaypoints()
 			self:walkTo(destinationPart)
+			return
 		end
 	end
 
@@ -116,14 +145,20 @@ function module:checkCollision()
 			self.Character:SetAttribute("LookingAt", otherNPC.Name)
 
 			-- if both npc's are looking at each other,
-			-- the npc with the lower id will act
+			-- the npc with without the right of way will stop
 			if otherNPC:GetAttribute("LookingAt") == self.Character.Name then
+				-- if other npc is further in the cafeteria (lower action code), they have the right of way
+				if otherNPC:GetAttribute("ActionCode") < self.Character:GetAttribute("ActionCode") then
+					return otherNPC, raycastResult.Distance
+				end
+
+				-- if other npc spawned first (has a higher id), they have the right of way
 				local otherNPCID = otherNPC:GetAttribute("ID")
 				if otherNPCID > self.States.ID then
 					return otherNPC, raycastResult.Distance
-				else
-					return nil
 				end
+
+				return nil
 			else
 				return otherNPC, raycastResult.Distance
 			end
@@ -156,11 +191,21 @@ function module:updateWalkSpeed()
 		if otherNPC then
 			local newWalkSpeed = self:calculateWalkSpeed(distance)
 			self:setWalkSpeed(newWalkSpeed)
+
+			if newWalkSpeed == 0 then
+				if self.Character:GetAttribute("StoppedDuration") == nil then
+					self.Character:SetAttribute("StoppedDuration", 0)
+				end
+				self.Character:SetAttribute("StoppedDuration", self.Character:GetAttribute("StoppedDuration") + 0.5)
+			else
+				self.Character:SetAttribute("StoppedDuration", 0)
+			end
 		else
+			self.Character:SetAttribute("StoppedDuration", 0)
 			self:setWalkSpeed(CONFIGURATION.MAX_WALK_SPEED)
 		end
 
-		task.wait(0.5)
+		task.wait(0.25)
 	end
 end
 

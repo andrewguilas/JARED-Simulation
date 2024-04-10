@@ -24,6 +24,12 @@ local function main()
 			newRoom.ServingArea.Path.Point2,
 			newRoom.ServingArea.Path.Point3,
 			newRoom.ServingArea.Path.Point4,
+			newRoom.ServingArea.Path.Point5,
+			newRoom.ServingArea.Path.Point6,
+			newRoom.ServingArea.Path.Point7,
+			newRoom.ServingArea.Path.Point8,
+			newRoom.ServingArea.Path.Point9,
+			newRoom.ServingArea.Path.Point10,
 		},
 		{
 			{Start = newRoom.DisposalArea.DisposalA.Path.DisposalAreaStart, End = newRoom.DisposalArea.DisposalA.Path.DisposalAreaEnd},

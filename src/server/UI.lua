@@ -57,8 +57,8 @@ function module:update()
             continue
         end
 
-        local xPosition = student.PrimaryPart.Position.X / 2 * 10
-        local zPosition = student.PrimaryPart.Position.Z / 2 * 10
+        local xPosition = student.PrimaryPart.Position.X / 2 * 10 * -1
+        local zPosition = student.PrimaryPart.Position.Z / 2 * 10 * -1
         
         if student.Humanoid.WalkSpeed == 0 then
             template.ImageColor3 = CONFIGURATION.STOP_COLOR
