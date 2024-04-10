@@ -83,34 +83,6 @@ function module:walkTo(destinationPart)
 			return
 		end
 
-		local otherNPC, distance = self:checkCollision()
-		if otherNPC then
-			if distance < CONFIGURATION.STOP_DISTANCE then
-				-- close collision, slow down
-				-- print("Detected collision, slowing down...")
-				self:setWalkSpeed(CONFIGURATION.SLOW_WALK_SPEED)
-			elseif distance < CONFIGURATION.STOP_DISTANCE then
-				-- print("Detected collision, stopping...")
-				-- imminent collision, stop
-				while true do
-					otherNPC, distance = self:checkCollision()
-					if otherNPC == nil or distance >= CONFIGURATION.STOP_DISTANCE then
-						break
-					end
-					task.wait(CONFIGURATION.STOP_DELAY)
-				end
-
-				-- close collision, slow down
-				self:setWalkSpeed(CONFIGURATION.SLOW_WALK_SPEED)
-			else
-				-- no collision
-				self:setWalkSpeed(CONFIGURATION.DEFAULT_WALK_SPEED)
-			end
-		else
-			-- no collision
-			self:setWalkSpeed(CONFIGURATION.DEFAULT_WALK_SPEED)
-		end
-
 		self.Humanoid:MoveTo(waypoint.Position)
 		local success = self.Humanoid.MoveToFinished:Wait(3)
 		if not success then
@@ -130,8 +102,66 @@ function module:walkTo(destinationPart)
 	self:destroyWaypoints()
 end
 
+function module:checkCollision()
+	local rayOrigin = self.Character.Torso.CFrame.p
+	local rayDirection = self.Character.Torso.CFrame.lookVector * CONFIGURATION.SLOW_DISTANCE
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {npcStorage}
+	raycastParams.FilterType = Enum.RaycastFilterType.Include
+
+	local raycastResult = Workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+	if raycastResult then
+		local otherNPC = raycastResult.Instance.Parent
+		if otherNPC:FindFirstChild("Humanoid") then
+			self.Character:SetAttribute("LookingAt", otherNPC.Name)
+
+			-- if both npc's are looking at each other,
+			-- the npc with the lower id will act
+			if otherNPC:GetAttribute("LookingAt") == self.Character.Name then
+				local otherNPCID = otherNPC:GetAttribute("ID")
+				if otherNPCID > self.States.ID then
+					return otherNPC, raycastResult.Distance
+				else
+					return nil
+				end
+			else
+				return otherNPC, raycastResult.Distance
+			end
+		end
+	end
+
+	self.Character:SetAttribute("LookingAt", nil)
+end
+
 function module:setWalkSpeed(walkSpeed)
 	self.Humanoid.WalkSpeed = walkSpeed
+end
+
+function module:calculateWalkSpeed(distance)
+	local speed = CONFIGURATION.MAX_WALK_SPEED * (1 / (1 + 2.718 ^ (CONFIGURATION.WALK_SPEED_K * (distance - CONFIGURATION.SLOW_DISTANCE))))
+	if speed <= 1 then
+		speed = 0
+	end
+
+	return speed
+end
+
+function module:updateWalkSpeed()
+	while true do
+		if not self.Character:FindFirstChild("Torso") then
+			return
+		end
+
+		local otherNPC, distance = self:checkCollision()
+		if otherNPC then
+			local newWalkSpeed = self:calculateWalkSpeed(distance)
+			self:setWalkSpeed(newWalkSpeed)
+		else
+			self:setWalkSpeed(CONFIGURATION.MAX_WALK_SPEED)
+		end
+
+		task.wait(0.5)
+	end
 end
 
 function module:visualizeWaypoints(waypoints, isSuccess)
@@ -162,26 +192,6 @@ end
 function module:destroyWaypoints()
 	for _, waypointPart in ipairs(self.WaypointParts) do
 		waypointPart:Destroy()
-	end
-end
-
-function module:checkCollision()
-	local rayOrigin = self.Character.Torso.CFrame.p
-	local rayDirection = self.Character.Torso.CFrame.lookVector * 10
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterDescendantsInstances = {npcStorage}
-	raycastParams.FilterType = Enum.RaycastFilterType.Include
-
-	local raycastResult = Workspace:Raycast(rayOrigin, rayDirection, raycastParams)
-	if raycastResult then
-		local otherNPC = raycastResult.Instance.Parent
-		if otherNPC:FindFirstChild("Humanoid") then
-			-- if other NPC's ID is greater than NPC, then NPC will act
-			local otherNPCID = otherNPC:GetAttribute("ID")
-			if otherNPCID > self.States.ID then
-				return otherNPC, raycastResult.Distance
-			end
-		end
 	end
 end
 

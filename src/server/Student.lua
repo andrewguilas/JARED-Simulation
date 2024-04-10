@@ -25,6 +25,8 @@ function module.new()
 	self.PrimaryPart = newStudent.PrimaryPart
 	self.Seat = nil
 
+	coroutine.wrap(self.updateWalkSpeed)(self)
+
 	return self
 end
 

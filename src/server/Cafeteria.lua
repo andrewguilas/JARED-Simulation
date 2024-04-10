@@ -48,6 +48,7 @@ function module:spawnStudent()
 	newStudent.Character.Name = "Student" .. tostring(id)
 	newStudent.States.ID = id
 	newStudent.Character:SetAttribute("ID", id)
+	newStudent.Character:SetAttribute("LookingAt", nil)
 
 	newStudent:enterRoom(self.SpawnArea)
 	newStudent:getFood(self.ServingArea)
