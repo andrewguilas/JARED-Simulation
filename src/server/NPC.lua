@@ -87,10 +87,10 @@ function module:walkTo(destinationPart)
 		if otherNPC then
 			if distance < CONFIGURATION.STOP_DISTANCE then
 				-- close collision, slow down
-				print("Detected collision, slowing down...")
+				-- print("Detected collision, slowing down...")
 				self:setWalkSpeed(CONFIGURATION.SLOW_WALK_SPEED)
 			elseif distance < CONFIGURATION.STOP_DISTANCE then
-				print("Detected collision, stopping...")
+				-- print("Detected collision, stopping...")
 				-- imminent collision, stop
 				while true do
 					otherNPC, distance = self:checkCollision()

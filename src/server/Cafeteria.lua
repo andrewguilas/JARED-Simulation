@@ -51,10 +51,14 @@ function module:spawnStudent()
 
 	newStudent:enterRoom(self.SpawnArea)
 	newStudent:getFood(self.ServingArea)
+	task.wait(CONFIGURATION.SERVING_DURATION)
+
 	newStudent:findSeat(self.Seats)
 	task.wait(CONFIGURATION.EATING_DURATION)
 
 	newStudent:disposeTrash(self.DisposalAreas)
+	task.wait(CONFIGURATION.DISPOSING_DURATION)
+
 	newStudent:exitRoom(self.SpawnArea)
 
 end

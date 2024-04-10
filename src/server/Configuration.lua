@@ -2,7 +2,9 @@ return {
     CAFETERIA = {
         SIMULATION_DELAY = 3,
         SPAWN_DELAY = 0.25,
+        SERVING_DURATION = 3,
         EATING_DURATION = 45,
+        DISPOSING_DURATION = 3,
         SPAWN_AMOUNT = 50,
         MAX_CAPACITY = 150,
     },
