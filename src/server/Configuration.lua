@@ -11,11 +11,14 @@ return {
     STUDENT = {
         MAX_WALK_SPEED = 16,
         WALK_SPEED_K = -1,
-        SLOW_DISTANCE = 8,
+        SLOW_DISTANCE = 6,
         STOP_DELAY = 0.5,
     },
     UI = {
         ENABLED = true,
         UPDATE_DELAY = 0.1,
+        STOP_COLOR = Color3.fromRGB(255, 0, 0),
+        SLOW_COLOR = Color3.fromRGB(255, 180, 180),
+        WALK_COLOR = Color3.fromRGB(255, 255, 255),
     },
 }

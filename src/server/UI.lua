@@ -60,6 +60,14 @@ function module:update()
         local xPosition = student.PrimaryPart.Position.X / 2 * 10
         local zPosition = student.PrimaryPart.Position.Z / 2 * 10
         
+        if student.Humanoid.WalkSpeed == 0 then
+            template.ImageColor3 = CONFIGURATION.STOP_COLOR
+        elseif student.Humanoid.WalkSpeed < 8 then
+            template.ImageColor3 = CONFIGURATION.SLOW_COLOR
+        else
+            template.ImageColor3 = CONFIGURATION.WALK_COLOR
+        end
+
         template.Position = UDim2.new(0, xPosition, 0, zPosition)
         template.Visible = true
     end
