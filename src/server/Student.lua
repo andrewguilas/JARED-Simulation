@@ -66,7 +66,7 @@ function module:findSeat(seats)
 
 	local remainingSeats = {}
 	for _, seat in ipairs(seats) do
-		if seat.Owner == nil then
+		if seat.Owner == true then
 			table.insert(remainingSeats, seat)
 		end
 	end
@@ -77,9 +77,6 @@ function module:findSeat(seats)
 	end
 
 	local randomNumber = math.random(1, #remainingSeats)
-
-	-- print("Random seat is seat " .. tostring(randomNumber))
-
 	local randomSeat = remainingSeats[randomNumber]
 	randomSeat.Owner = self.Character
 	

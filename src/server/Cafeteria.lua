@@ -2,11 +2,39 @@
 
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local student = require(ServerScriptService.Server.Student)
+local Group = require(ServerScriptService.Server.Group)
 local CONFIGURATION = require(ServerScriptService.Server.Configuration).CAFETERIA
+local getRandomRow = require(ServerScriptService.Server.Methods.GetRandomRow)
 
 local module = {}
 module.__index = module
+
+local function calculateEntryRate(currentMinute)
+	for _, row in ipairs(CONFIGURATION.ENTRY_RATE) do
+		-- find the minute interval the minute is in
+		if currentMinute < row["MINUTE"] then
+			return math.round(row["STUDENTS"] / 15) -- number of students every 15 minutes / 15 minutes = number of students every minute
+		end
+	end
+end
+
+local function calculateGroupCounts(entryRate)
+	local groupCounts = {}
+	while entryRate > 0 do
+		local randomRow = getRandomRow(CONFIGURATION.GROUP_SIZE)
+		local students = randomRow["STUDENTS"]
+		
+		-- don't exceed entry rate
+		if students > entryRate then
+			students = entryRate
+		end
+
+		table.insert(groupCounts, students)
+		entryRate -= students
+	end
+
+	return groupCounts
+end
 
 function module.new()
 	local self = setmetatable({
@@ -16,12 +44,12 @@ function module.new()
 			Start = nil,
 			End = nil,
 		},
-		Seats = {},
+		Tables = {},
 		DisposalArea = {
 			Start = nil,
 			End = nil,
 		},
-		Students = {},
+		StudentCount = 0,
 	}, module)
 	
 	return self
@@ -34,57 +62,49 @@ function module:setRoom(room, spawnArea, servingArea, disposalAreas)
 	self.DisposalAreas = disposalAreas
 end
 
+function module:addTable(tableTables)
+	local seats = {}
+
+	for _, chair in ipairs(tableTables:GetChildren()) do
+		local seat = chair:FindFirstChildWhichIsA("Seat")
+		if seat then
+			local seatData = self:addSeat(seat)
+			table.insert(seats, seatData)
+		end
+	end
+
+	table.insert(self.Tables, seats)
+end
+
 function module:addSeat(seat)
-	table.insert(self.Seats, {
+	local seatData = {
 		Seat = seat,
 		Owner = nil,
-		Table = seat.Parent,
-	})
+	}
+
+	seat.Disabled = true
+
+	return seatData
 end
-
-
-
-
-function module:formGroup()
-
-end
-
-function module:spawnGroup()
-
-end
-
-function module:spawnStudent()
-	local id = #self.Students
-	local newStudent = student.new()
-	table.insert(self.Students, newStudent)
-	newStudent.Character.Name = "Student" .. tostring(id)
-	newStudent.States.ID = id
-	newStudent.Character:SetAttribute("ID", id)
-
-	newStudent:enterRoom(self.SpawnArea)
-	newStudent:getFood(self.ServingArea)
-	newStudent:findSeat(self.Seats)
-	newStudent:disposeTrash(self.DisposalAreas)
-	newStudent:exitRoom(self.SpawnArea)
-
-end
-
-function module:findTable()
-
-end
-
-
-
-
 
 function module:start()	
 	task.wait(CONFIGURATION.SIMULATION_DELAY)
+	math.randomseed(os.time())
 
-	for count = 1, CONFIGURATION.SPAWN_AMOUNT, 1 do
-		coroutine.wrap(self.spawnStudent)(self)
-		task.wait(CONFIGURATION.SPAWN_DELAY)
+	for minute = 1, 60 do
+		print(string.format("Minute %s", minute))
+
+		local entryRate = calculateEntryRate(minute)
+		local groupCounts = calculateGroupCounts(entryRate)
+
+		for _, groupCount in ipairs(groupCounts) do
+			local group = Group.new(groupCount, self)
+			coroutine.wrap(group.spawnGroup)(group)
+
+			task.wait(60 / groupCount)
+		end
+
 	end
-
 end
 
 return module

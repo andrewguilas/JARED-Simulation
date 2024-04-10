@@ -21,7 +21,7 @@ function module.new()
 		AgentParameters = {
 			AgentCanJump = false,
 			WaypointSpacing = 3,
-			AgentRadius = 2,
+			-- AgentRadius = 2,
 			Wood = 3,
 			Concrete = 2,
 			SmoothPlastic = 1,
@@ -54,14 +54,14 @@ function module:createPath(pathName)
 end
 
 function module:walkTo(destinationPart)
-	if CONFIGURATION.LOG then 
-		print(string.format("Student%s: Walking to %s", self.States.ID, destinationPart.Name)) 
+	local destinationPosition = Vector3.new(destinationPart.Position.X, self.Character.HumanoidRootPart.Position.Y, destinationPart.Position.Z)
+	if CONFIGURATION.LOG_OUTPUT then 
+		print(string.format("Student%s: Walking to %s at %s", self.States.ID, destinationPart.Name, tostring(destinationPosition))) 
 	end
 
-	local destinationPosition = Vector3.new(destinationPart.Position.X, self.Character.HumanoidRootPart.Position.Y, destinationPart.Position.Z)
 	self.Path:ComputeAsync(self.Character.HumanoidRootPart.Position, destinationPosition)
 	if self.Path.Status == Enum.PathStatus.NoPath then
-		if CONFIGURATION.LOG then 
+		if CONFIGURATION.LOG_OUTPUT then 
 			print(string.format("Student%s: Walking to %s (no path)", self.States.ID, destinationPart.Name))
 		end
 
@@ -85,7 +85,7 @@ function module:walkTo(destinationPart)
 
 	for _, waypoint in ipairs(waypoints) do
 		if blockedConnection == nil then
-			if CONFIGURATION.LOG then 
+			if CONFIGURATION.LOG_OUTPUT then 
 				print(string.format("Student%s: Walking to %s (path blocked)", self.States.ID, destinationPart.Name))
 			end
 
@@ -108,7 +108,7 @@ function module:walkTo(destinationPart)
 
 		local success = self.Humanoid.MoveToFinished:Wait(3)
 		if not success then
-			if CONFIGURATION.LOG then 
+			if CONFIGURATION.LOG_OUTPUT then 
 				print(string.format("Student%s: Walking to %s (couldn't make it)", self.States.ID, destinationPart.Name))
 			end
 			
@@ -143,6 +143,11 @@ function module:checkCollision()
 		local otherNPC = raycastResult.Instance.Parent
 		if otherNPC:FindFirstChild("Humanoid") then
 			self.Character:SetAttribute("LookingAt", otherNPC.Name)
+
+			-- if other npc is sitting in a chair, go through it
+			if otherNPC.Humanoid.Sit == true then
+				return nil
+			end
 
 			-- if both npc's are looking at each other,
 			-- the npc with without the right of way will stop

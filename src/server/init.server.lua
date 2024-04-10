@@ -6,12 +6,20 @@ local StarterGui = game:GetService("StarterGui")
 
 local Cafeteria = require(ServerScriptService.Server.Cafeteria)
 local UIHandler = require(ServerScriptService.Server.UI)
+local Configuration = require(ServerScriptService.Server.Configuration)
 
 local newRoom = Workspace.Room
 local npcStorage = Workspace.NPCs
 local UI = StarterGui.UI
 
+local function updateTime(timeMultiplier)
+
+end
+
 local function main()
+	local timeMultiplier = Configuration.CAFETERIA.SIMULATION_SPEED
+	updateTime(timeMultiplier)
+
 	UIHandler.new(UI, npcStorage)
 
 	local newCafeteria = Cafeteria.new()
@@ -38,13 +46,7 @@ local function main()
 	)
 
 	for _, table in ipairs(newRoom.Tables:GetChildren()) do
-		for _, chair in ipairs(table:GetChildren()) do
-			local seat = chair:FindFirstChildWhichIsA("Seat")
-			if seat then
-				seat.Disabled = true
-				newCafeteria:addSeat(seat)
-			end
-		end
+		newCafeteria:addTable(table)
     end
 	
 	newCafeteria:start()
