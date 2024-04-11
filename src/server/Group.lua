@@ -7,9 +7,21 @@ local getRandomRow = require(ServerScriptService.Server.Methods.GetRandomRow)
 local module = {}
 module.__index = module
 
+function cloneTable(arr, n)
+    local clonedArray = {}
+    for i = 1, x do
+        if arr[i] then
+            table.insert(clonedArray, arr[i])
+        else
+            break
+        end
+    end
+    return clonedArray
+end
+
 local function calculateEatingDuration()
     local randomRow = getRandomRow(CONFIGURATION.EATING_DURATION)
-    return randomRow["MINUTE"] * 60
+    return randomRow["MINUTE"] * 60  / CONFIGURATION.SIMULATION_SPEED
 end
 
 function module.new(groupCount, cafeteria)
@@ -25,15 +37,16 @@ function module.new(groupCount, cafeteria)
 end
 
 function module:spawnGroup()
-    self.Table = self:findTable()
     local eatingDuration = calculateEatingDuration()
-
-    print(string.format("Spawning group of size %s, chose table %s, eating for %s sec", self.Count, tostring(self.Table), eatingDuration))
+    print(string.format("Spawning group of size %s, eating for %s mins", self.Count, math.round(eatingDuration / 60)))
 
 	for count = 1, self.Count do
 		coroutine.wrap(self.spawnStudent)(self)
 		task.wait(CONFIGURATION.SPAWN_DELAY)
 	end
+
+    self.Table = self:findTable()
+    self:assignSeats()
 
     task.wait(eatingDuration)
     self.IsEatingDone = true
@@ -51,7 +64,7 @@ function module:spawnStudent()
 
     newStudent:enterRoom(self.Cafeteria.SpawnArea)
 	newStudent:getFood(self.Cafeteria.ServingArea)
-	newStudent:findSeat(self.Table)
+	newStudent:findSeat()
     
     while (self.IsEatingDone == false) do
         task.wait(1)
@@ -78,25 +91,36 @@ function module:findTable()
         end
     end
 
-    if #availableTables ~= 0 then
-        -- warn("No more available tables for an entire group")
-        availableSeats[1].Owner = true
+    if #availableTables == 0 then
+        warn("No more available tables for an entire group")
         return availableSeats
     end
 
 	local randomNumber = math.random(1, #availableTables)
 	local randomTable = availableTables[randomNumber]
-    local ownedSeats = 0
-    for __, seat in ipairs(randomTable) do
-        -- make the seat "owned", but not occupied
-        -- ignore seats already taken
-        if seat.Owner == nil then
-            seat.Owner = true
-            ownedSeats += 1
-        end
-    end
-
     return randomTable
+end
+
+function module:assignSeats()
+    for _, student in ipairs(self.Students) do
+        local remainingSeats = {}
+        for _, seat in ipairs(self.Table) do
+            if seat.Owner == nil then
+                table.insert(remainingSeats, seat)
+            end
+        end
+    
+        if #remainingSeats == 0 then
+            warn("No more available seats")
+            return
+        end
+    
+        local randomNumber = math.random(1, #remainingSeats)
+        local randomSeat = remainingSeats[randomNumber]
+        randomSeat.Owner = student.Character
+
+        student.Seat = randomSeat
+    end
 end
 
 return module

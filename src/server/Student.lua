@@ -60,28 +60,12 @@ function module:getFood(servingAreas)
 	newFood.Parent = self.Character
 end
 
-function module:findSeat(seats)
+function module:findSeat()
 	self.Character:SetAttribute("ActionCode", 2)
 	self:createPath("PathC")
 
-	local remainingSeats = {}
-	for _, seat in ipairs(seats) do
-		if seat.Owner == true then
-			table.insert(remainingSeats, seat)
-		end
-	end
-
-	if #remainingSeats == 0 then
-		warn("No more available seats")
-		return
-	end
-
-	local randomNumber = math.random(1, #remainingSeats)
-	local randomSeat = remainingSeats[randomNumber]
-	randomSeat.Owner = self.Character
-	
-	self.Seat = randomSeat
 	self:walkTo(self.Seat.Seat)
+	print(self.Seat.Owner, self.Character.Name, self.Seat.Seat.Occupant and self.Seat.Seat.Occupant.Parent.Name)
 	self.Seat.Seat:Sit(self.Humanoid)
 
 	task.wait(CONFIGURATION.EATING_DURATION)
@@ -91,6 +75,7 @@ function module:disposeTrash(disposalAreas)
 	self.Character:SetAttribute("ActionCode", 3)
 	self:createPath("PathD")
 
+	self.Seat.Owner = nil
 	if self.Humanoid.Sit then
 		self.Humanoid.Jump = true
 	end

@@ -101,7 +101,7 @@ function module:start()
 			local group = Group.new(groupCount, self)
 			coroutine.wrap(group.spawnGroup)(group)
 
-			task.wait(60 / groupCount)
+			task.wait(60 / groupCount / CONFIGURATION.SIMULATION_SPEED)
 		end
 
 	end

@@ -4,7 +4,7 @@ return {
         SPAWN_DELAY = 1, -- 4
         MAX_CAPACITY = 150,
         LOG_OUTPUT = true,
-        SIMULATION_SPEED = 1, -- simulation seconds per real world minute (x seconds / real minute)
+        SIMULATION_SPEED = 10, -- x times as fast, default is 1
         GROUP_SIZE = {
             {STUDENTS = 1, PROBABILITY = 0.10},
             {STUDENTS = 2, PROBABILITY = 0.25},

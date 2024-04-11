@@ -7,7 +7,15 @@ local Workspace = game:GetService("Workspace")
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
-local CONFIGURATION = require(ServerScriptService.Server.Configuration).UI
+local CONFIGURATION = require(ServerScriptService.Server.Configuration)
+
+local function formatStopwatch(seconds)
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local remainingSeconds = seconds % 60
+    
+    return string.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
+end
 
 function module.new(UI, npcStorage)	
 	local self = setmetatable({
@@ -19,7 +27,7 @@ function module.new(UI, npcStorage)
         Frames = {}
     }, module)
 
-    if CONFIGURATION.ENABLED then
+    if CONFIGURATION.UI.ENABLED then
         npcStorage.ChildAdded:Connect(function(newStudent)
             self:createStudent(newStudent)
         end)
@@ -31,7 +39,7 @@ function module.new(UI, npcStorage)
         coroutine.wrap(function()
             while true do
                 self:update()
-                task.wait(CONFIGURATION.UpdateDelay)
+                task.wait(CONFIGURATION.UI.UpdateDelay)
             end
         end)()
     end
@@ -61,11 +69,11 @@ function module:update()
         local zPosition = student.PrimaryPart.Position.Z / 2 * 10 * -1
         
         if student.Humanoid.WalkSpeed == 0 then
-            template.ImageColor3 = CONFIGURATION.STOP_COLOR
+            template.ImageColor3 = CONFIGURATION.UI.STOP_COLOR
         elseif student.Humanoid.WalkSpeed < 8 then
-            template.ImageColor3 = CONFIGURATION.SLOW_COLOR
+            template.ImageColor3 = CONFIGURATION.UI.SLOW_COLOR
         else
-            template.ImageColor3 = CONFIGURATION.WALK_COLOR
+            template.ImageColor3 = CONFIGURATION.UI.WALK_COLOR
         end
 
         template.Position = UDim2.new(0, xPosition, 0, zPosition)
@@ -73,12 +81,12 @@ function module:update()
     end
 
     local studentsValue = #self.NPCStorage:GetChildren()
-    local durationValue = math.round(Workspace.DistributedGameTime, 2)
+    local durationValue = formatStopwatch(Workspace.DistributedGameTime * CONFIGURATION.CAFETERIA.SIMULATION_SPEED)
     local heartbeatValue = math.round(1 / RunService.Heartbeat:Wait(), 2)
 
-    self.Data.Students.Text = "Students: " .. tostring(studentsValue)
-    self.Data.Duration.Text = "Duration: " .. tostring(durationValue)
-    self.Data.Heartbeat.Text = "Heartbeat: " .. tostring(heartbeatValue)
+    self.Data.Students.Text = string.format("Students: %s/%s", studentsValue, CONFIGURATION.CAFETERIA.MAX_CAPACITY)
+    self.Data.Duration.Text = string.format("Duration: %s", durationValue)
+    self.Data.Heartbeat.Text = string.format("Heartbeat: %s", tostring(heartbeatValue))
 end
 
 return module

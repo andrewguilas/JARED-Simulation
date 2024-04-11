@@ -6,18 +6,22 @@ local StarterGui = game:GetService("StarterGui")
 
 local Cafeteria = require(ServerScriptService.Server.Cafeteria)
 local UIHandler = require(ServerScriptService.Server.UI)
-local Configuration = require(ServerScriptService.Server.Configuration)
+local CONFIGURATION = require(ServerScriptService.Server.Configuration)
 
 local newRoom = Workspace.Room
 local npcStorage = Workspace.NPCs
 local UI = StarterGui.UI
 
 local function updateTime(timeMultiplier)
-
+	CONFIGURATION.CAFETERIA.SPAWN_DELAY = CONFIGURATION.CAFETERIA.SPAWN_DELAY / timeMultiplier
+	CONFIGURATION.STUDENT.MAX_WALK_SPEED = CONFIGURATION.STUDENT.MAX_WALK_SPEED * timeMultiplier
+	CONFIGURATION.STUDENT.STOP_DELAY = CONFIGURATION.STUDENT.STOP_DELAY / timeMultiplier
+	CONFIGURATION.STUDENT.SERVING_DURATION = CONFIGURATION.STUDENT.SERVING_DURATION / timeMultiplier
+	CONFIGURATION.STUDENT.DISPOSING_DURATION = CONFIGURATION.STUDENT.DISPOSING_DURATION / timeMultiplier
 end
 
 local function main()
-	local timeMultiplier = Configuration.CAFETERIA.SIMULATION_SPEED
+	local timeMultiplier = CONFIGURATION.CAFETERIA.SIMULATION_SPEED
 	updateTime(timeMultiplier)
 
 	UIHandler.new(UI, npcStorage)
