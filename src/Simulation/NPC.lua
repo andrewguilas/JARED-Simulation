@@ -21,9 +21,8 @@ function module.new()
 		AgentParameters = {
 			AgentCanJump = false,
 			WaypointSpacing = 3,
-			-- AgentRadius = 2,
-			Wood = 3,
-			Concrete = 2,
+			Wood = 6,
+			Concrete = 3,
 			SmoothPlastic = 1,
 		},
 		States = {
@@ -36,20 +35,6 @@ function module.new()
 end
 
 function module:createPath(pathName)	
-	for name, weight in pairs(self.AgentParameters) do
-		if table.find({"AgentCanJump", "WaypointSpacing", "AgentRadius"}, name) then
-			continue
-		elseif name == pathName then
-			self.AgentParameters[name] = 0.5
-		elseif name == "Wood" then
-			self.AgentParameters[name] = math.huge
-		elseif name == "Concrete" then
-			self.AgentParameters[name] = 2
-		else
-			self.AgentParameters[name] = 1
-		end
-	end
-
 	self.Path = PathFindingService:CreatePath(self.AgentParameters)
 end
 
@@ -152,8 +137,8 @@ function module:checkCollision()
 			-- if both npc's are looking at each other,
 			-- the npc with without the right of way will stop
 			if otherNPC:GetAttribute("LookingAt") == self.Character.Name then
-				-- if other npc is further in the cafeteria (lower action code), they have the right of way
-				if otherNPC:GetAttribute("ActionCode") < self.Character:GetAttribute("ActionCode") then
+				-- if other npc is further in the cafeteria (higher action code), they have the right of way
+				if otherNPC:GetAttribute("ActionCode") > self.Character:GetAttribute("ActionCode") then
 					return otherNPC, raycastResult.Distance
 				end
 
