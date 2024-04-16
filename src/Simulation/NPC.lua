@@ -4,7 +4,7 @@ local PathFindingService = game:GetService("PathfindingService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 
-local CONFIGURATION = require(ServerScriptService.Server.Configuration).STUDENT
+local CONFIGURATION = require(ServerScriptService.Simulation.Configuration).STUDENT
 
 local npcStorage = Workspace.NPCs
 

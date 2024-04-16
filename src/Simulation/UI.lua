@@ -7,7 +7,7 @@ local Workspace = game:GetService("Workspace")
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
-local CONFIGURATION = require(ServerScriptService.Server.Configuration)
+local CONFIGURATION = require(ServerScriptService.Simulation.Configuration)
 
 local function formatStopwatch(seconds)
     local hours = math.floor(seconds / 3600)
@@ -27,12 +27,16 @@ function module.new(UI, npcStorage)
         Frames = {}
     }, module)
 
+	return self
+end
+
+function module:run()
     if CONFIGURATION.UI.ENABLED then
-        npcStorage.ChildAdded:Connect(function(newStudent)
+        self.NPCStorage.ChildAdded:Connect(function(newStudent)
             self:createStudent(newStudent)
         end)
 
-        npcStorage.ChildRemoved:Connect(function(newStudent)
+        self.NPCStorage.ChildRemoved:Connect(function(newStudent)
             self:destroyStudent(newStudent)
         end)
 
@@ -44,7 +48,6 @@ function module.new(UI, npcStorage)
         end)()
     end
 
-	return self
 end
 
 function module:createStudent(newStudent)
