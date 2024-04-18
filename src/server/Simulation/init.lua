@@ -1,3 +1,9 @@
+--[[
+
+    Handler for simulation
+
+]]
+
 local module = {}
 module.__index = module
 

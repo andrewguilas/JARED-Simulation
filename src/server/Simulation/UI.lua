@@ -1,3 +1,9 @@
+--[[
+
+    Handler for 2D UI minimap
+
+]]
+
 local module = {}
 module.__index = module
 

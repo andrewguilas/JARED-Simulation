@@ -1,8 +1,16 @@
+--[[
+
+    Handler for NPC related methods
+
+]]
+
 local module = {}
 module.__index = module
 
 local Workspace = game:GetService("Workspace")
 local PathfindingService = game:GetService("PathfindingService")
+
+local Waypoints = require(script.parent.Helper.Waypoints)
 
 local npcStorage = Workspace.Cafeteria.NPCs
 
@@ -26,12 +34,13 @@ local function checkCollision(character, slowDistance)
         return false
     end
 
-    character:SetAttribute("LookingAt", otherNPC.Name)
-
     -- if other npc is sitting in a chair, go through them
     if otherNPC.Humanoid.Sit == true then
+		character:SetAttribute("LookingAt", nil)
         return false
     end
+
+	character:SetAttribute("LookingAt", otherNPC.Name)
 
     -- if both npc's are looking at each other,
     -- the npc with without the right of way will stop
@@ -51,47 +60,7 @@ local function checkCollision(character, slowDistance)
 end
 
 local function calculateWalkSpeed(STUDENT_PARAMETERS, distance)
-	local speed =STUDENT_PARAMETERS.MAX_WALK_SPEED * (1 / (1 + 2.718 ^ (-(distance -STUDENT_PARAMETERS.SLOW_DISTANCE))))
-	if speed <= 1 then
-		speed = 0
-	end
-
-	return speed
-end
-
-local function visualizeWaypoints(waypoints, isSuccess)
-	local waypointsFolder = Workspace:FindFirstChild("Waypoints")
-	if not waypointsFolder then
-		waypointsFolder = Instance.new("Folder")
-		waypointsFolder.Name = "Waypoints"
-		waypointsFolder.Parent = Workspace
-	end
-
-    local waypointParts = {}
-
-	for _, waypoint in ipairs(waypoints) do
-		local waypointPart = Instance.new("Part")
-		waypointPart.Shape = Enum.PartType.Ball
-		waypointPart.Position = waypoint.Position
-		waypointPart.BrickColor = isSuccess and BrickColor.new("White") or BrickColor.new("Really red")
-		waypointPart.Material = Enum.Material.Neon
-		waypointPart.CanCollide = false
-		waypointPart.Anchored = true
-		waypointPart.Size = Vector3.new(1, 1, 1)
-		waypointPart.Parent = waypointsFolder
-
-		table.insert(waypointParts, waypointPart)
-		task.wait()
-		-- Debris:AddItem(waypointPart, 5)
-	end
-
-    return waypointParts
-end
-
-local function destroyWaypoints(waypointParts)
-	for _, waypointPart in ipairs(waypointParts) do
-		waypointPart:Destroy()
-	end
+	return math.round(STUDENT_PARAMETERS.MAX_WALK_SPEED * (1 / (1 + 2.718 ^ (-(distance -STUDENT_PARAMETERS.SLOW_DISTANCE)))))
 end
 
 function module.new(id, PARAMETERS)
@@ -113,6 +82,7 @@ function module:spawn(npcTemplate, position)
     self.Character.Parent = npcStorage
     self.Character.Name = "Student" .. tostring(self.ID)
     self.Character:SetAttribute("ID", self.ID)
+	self.Character:SetAttribute("StoppedDuration", 0)
     self.Character:MoveTo(position)
 
 	self.Humanoid = self.Character.Humanoid
@@ -127,8 +97,6 @@ function module:despawn()
     -- Cleanup
 	if self.Seat then
 		self.Seat.Owner = nil
-		-- self.Seat.Seat.Material = Enum.Material.Wood
-		-- self.Seat.Seat.BrickColor = BrickColor.new("Fawn brown")
 	end
 end
 
@@ -151,7 +119,7 @@ function module:walkTo(destinationPart)
 
     local waypoints = self.Path:GetWaypoints()
 	if self.PARAMETERS.SHOW_WAYPOINTS or self.Character:GetAttribute("ShowWaypoints") then
-		self.WaypointParts = coroutine.wrap(visualizeWaypoints)(waypoints, true)
+		self.WaypointParts = coroutine.wrap(Waypoints.show)(waypoints, BrickColor.new("White"))
 	end
 
 	local blockedConnection
@@ -165,21 +133,10 @@ function module:walkTo(destinationPart)
 		    -- print(string.format("Student%s: Path blocked", self.ID))
 
 			task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
-			destroyWaypoints(self.WaypointParts)
+			Waypoints.destroy(self.WaypointParts)
 			self:walkTo(destinationPart)
 			return
 		end
-
-		-- 10 second max cooldown to resume walking
-		for sec = 1, 5 / self.PARAMETERS.STUDENT.UPDATE_DELAY do
-			if self.Humanoid.WalkSpeed ~= 0 then
-				break
-			end
-            
-			task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
-		end
-
-		self.Humanoid.WalkSpeed = self.PARAMETERS.STUDENT.MAX_WALK_SPEED
 
 		self.Humanoid:MoveTo(waypoint.Position)
 
@@ -193,13 +150,13 @@ function module:walkTo(destinationPart)
 			end
 
 			task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
-			destroyWaypoints(self.WaypointParts)
+			Waypoints.destroy(self.WaypointParts)
 			self:walkTo(destinationPart)
 			return
 		end
 	end
 
-    destroyWaypoints(self.WaypointParts)
+    Waypoints.destroy(self.WaypointParts)
 	if blockedConnection then
 		blockedConnection:Disconnect()
 	end
@@ -207,29 +164,27 @@ end
 
 function module:updateWalkSpeed()
 	while true do
+		task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
+
 		if not self.Character:FindFirstChild("Torso") then
 			return
 		end
 
+		local currentStoppedDuration = self.Character:GetAttribute("StoppedDuration")
 		local otherNPC, distance = checkCollision(self.Character, self.PARAMETERS.STUDENT.SLOW_DISTANCE)
-		if otherNPC then
+		if currentStoppedDuration < 10 and otherNPC then
 			local newWalkSpeed = calculateWalkSpeed(self.PARAMETERS.STUDENT, distance)
 			self.Humanoid.WalkSpeed = newWalkSpeed
 
-			if newWalkSpeed == 0 then
-				if self.Character:GetAttribute("StoppedDuration") == nil then
-					self.Character:SetAttribute("StoppedDuration", 0)
-				end
-				self.Character:SetAttribute("StoppedDuration", self.Character:GetAttribute("StoppedDuration") + 0.5)
-			else
-				self.Character:SetAttribute("StoppedDuration", 0)
+			if newWalkSpeed > 0 then
+				self.Character:SetAttribute("StoppedDuration", currentStoppedDuration + self.PARAMETERS.STUDENT.UPDATE_DELAY)
 			end
-		else
-			self.Character:SetAttribute("StoppedDuration", 0)
-			self.Humanoid.WalkSpeed = self.PARAMETERS.STUDENT.MAX_WALK_SPEED
+
+			continue
 		end
 
-		task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
+		self.Character:SetAttribute("StoppedDuration", 0)
+		self.Humanoid.WalkSpeed = self.PARAMETERS.STUDENT.MAX_WALK_SPEED
 	end
 end
 

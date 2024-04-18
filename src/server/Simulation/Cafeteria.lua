@@ -1,26 +1,19 @@
+--[[
+
+    Handler for cafeteria and management of all students
+
+]]
+
 local module = {}
 module.__index = module
 
 local Student = require(script.Parent.Student)
+local getRandomItem = require(script.Parent.Helper.GetRandomItem)
 
 local function getRandomSeat(seats)
-    local remainingSeats = {}
-	for _, seat in ipairs(seats) do
-		if seat.Owner == nil then
-			table.insert(remainingSeats, seat)
-		end
-	end
-
-	if #remainingSeats == 0 then
-		warn("No more available seats")
-		return
-	end
-
-	local randomNumber = math.random(1, #remainingSeats)
-	-- print("Random seat is seat " .. tostring(randomNumber))
-	local randomSeat = remainingSeats[randomNumber]
-
-    return randomSeat
+    return getRandomItem(seats, function(seat)
+        return seat.Owner == nil
+    end)
 end
 
 function module.new(cafeteria, templates)
@@ -62,20 +55,25 @@ end
 
 function module:spawnStudentsSeated()
     local studentsSeated = {}
-    local studentsSeatedCount = self.PARAMETERS.SIMULATION.EXIT_RATE * self.PARAMETERS.SIMULATION.DURATION
 
-    print(string.format("Spawning %s students in seats...", studentsSeatedCount))
+    print(string.format("Spawning %s students in seats...", self.PARAMETERS.SIMULATION.EXIT_AMOUNT))
 
-    for _ = 1, studentsSeatedCount do
-        local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
+    for _ = 1, self.PARAMETERS.SIMULATION.EXIT_AMOUNT do
+        coroutine.wrap(function()
+            local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
         
-        local randomSeat = getRandomSeat(self.Seats)
-        newStudent:spawnSeated(self.Templates.Student, randomSeat)
-        newStudent:giveFood(self.Templates.Food)
+            local randomSeat = getRandomSeat(self.Seats)
+            if not randomSeat then
+                error("No more seats available")
+            end
+            
+            newStudent:spawnSeated(self.Templates.Student, randomSeat)
+            newStudent:giveFood(self.Templates.Food)
+    
+            table.insert(studentsSeated, newStudent)
+            self.TotalStudentCount += 1
+        end)()
 
-        table.insert(studentsSeated, newStudent)
-
-        self.TotalStudentCount += 1
         task.wait(0.02)
     end
 
@@ -83,28 +81,24 @@ function module:spawnStudentsSeated()
 end
 
 function module:spawnStudentsEntrance()
-    print(string.format("Spawning students at %s students/second...", self.PARAMETERS.SIMULATION.ENTRANCE_RATE))
+    print(string.format("Spawning %s students at %s students/second...", self.PARAMETERS.SIMULATION.ENTER_AMOUNT, self.PARAMETERS.SIMULATION.ENTER_RATE))
 
-    while true do
-        if self.TotalStudentCount >= self.PARAMETERS.SIMULATION.MAX_CAPACITY then
-            break
-        end
-
-        local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
-        newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
-        
+    for _ = 1, self.PARAMETERS.SIMULATION.ENTER_AMOUNT do
         coroutine.wrap(function()
+            local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
+            newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
+            
             newStudent:getFood(self.DespawnArea)
             newStudent:despawn()
         end)()
 
         self.TotalStudentCount += 1
-        task.wait(1 / self.PARAMETERS.SIMULATION.ENTRANCE_RATE)
+        task.wait(1 / self.PARAMETERS.SIMULATION.ENTER_RATE)
     end
 end
 
 function module:despawnStudents(students)
-    print(string.format("Despawning %s students at %s students/sec...", #students, self.PARAMETERS.SIMULATION.EXIT_RATE))
+    print(string.format("Despawning %s students at %s students/sec...", #students, self.PARAMETERS.SIMULATION.EXIT_AMOUNT))
 
     for _, student in ipairs(students) do
         coroutine.wrap(function()

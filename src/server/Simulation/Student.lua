@@ -1,27 +1,42 @@
+--[[
+
+    Handler for student related methods
+    Implements NPC class
+
+    Action Codes
+    - Spawning: 0
+    - Getting food: 1
+    - Disposing trash: 2
+    - Exiting cafeteria: 3
+
+]]
+
 local module = {}
 module.__index = module
 
 local NPC = require(script.Parent.NPC)
+local getRandomPosition = require(script.Parent.Helper.GetRandomPosition)
 
 setmetatable(module, NPC)
 
 local function getClosestDisposalArea(primaryPart, disposalAreas)
     local distances = {}
-    for _, disposalArea in ipairs(disposalAreas) do
-        local distance = (primaryPart.Position - disposalArea.Start.Position).Magnitude
-        distances[disposalArea] = distance
+	local closestPart = nil
+    local closestPartDistance = math.huge
+
+    for _, part in ipairs(disposalAreas) do
+        local distance = (primaryPart.Position - part.Start.Position).Magnitude
+        distances[part] = distance
     end
 
-	local closestDisposalArea = nil
-    local closestDisposalAreaDistance = math.huge
-    for disposalArea, distance in pairs(distances) do
-        if distance < closestDisposalAreaDistance then
-            closestDisposalArea = disposalArea
-            closestDisposalAreaDistance = distance
+    for part, distance in pairs(distances) do
+        if distance < closestPartDistance then
+            closestPart = part
+            closestPartDistance = distance
         end
     end
 
-    return closestDisposalArea
+    return closestPart
 end
 
 function module.new(id, PARAMETERS)
@@ -29,21 +44,13 @@ function module.new(id, PARAMETERS)
 	local self = setmetatable(newNPC, module)
     self.Seat = nil
 
-    --[[
-
-    Action Codes
-    - Getting food: 0
-    - Disposing trash: 1
-    - Exiting cafeteria: 2
-
-    ]]
-
     return self
 end
 
 function module:spawnSeated(npcTemplate, randomSeat)
     self:spawn(npcTemplate, randomSeat.Seat.Position)
-    
+    self.Character:SetAttribute("ActionCode", 0)
+
     self.Seat = randomSeat
     self.Seat.Owner = self.ID
 	self.Seat.Seat:Sit(self.Humanoid)
@@ -54,15 +61,14 @@ function module:giveFood(foodTemplate)
 end
 
 function module:spawnEntrance(npcTemplate, spawnArea)
-	local offsetX = math.random(-(spawnArea.Size.X / 2 - 5), (spawnArea.Size.X / 2 - 5))
-	local offsetZ = math.random(-(spawnArea.Size.Z / 2 - 5), (spawnArea.Size.Z / 2 - 5))
-	local spawnPosition = spawnArea.Position + Vector3.new(offsetX, 5, offsetZ)
+	local spawnPosition = getRandomPosition(spawnArea, 5)
     
     self:spawn(npcTemplate, spawnPosition)
+    self.Character:SetAttribute("ActionCode", 0)
 end
 
 function module:getFood(despawnArea)
-	self.Character:SetAttribute("ActionCode", 0)
+	self.Character:SetAttribute("ActionCode", 1)
 	self:walkTo(despawnArea)
 end
 
@@ -71,6 +77,7 @@ function module:exitSeat()
 	if self.Humanoid.Sit then
 		self.Humanoid.Jump = true
 		
+        -- destroy weld connecting npc & seat if jumping doesn't work
 		local seatWeld = self.Seat.Seat:FindFirstChildWhichIsA("Weld")
 		if seatWeld then
 			seatWeld:Destroy()
@@ -79,7 +86,7 @@ function module:exitSeat()
 end
 
 function module:disposeTrash(disposalAreas, DISPOSING_DURATION)
-    self.Character:SetAttribute("ActionCode", 1)
+    self.Character:SetAttribute("ActionCode", 2)
 
     local closestDisposalArea = getClosestDisposalArea(self.PrimaryPart, disposalAreas)
     self:walkTo(closestDisposalArea.Start)
@@ -90,7 +97,7 @@ function module:disposeTrash(disposalAreas, DISPOSING_DURATION)
 end
 
 function module:exitRoom(spawnArea)
-    self.Character:SetAttribute("ActionCode", 2)
+    self.Character:SetAttribute("ActionCode", 3)
     self:walkTo(spawnArea)
 end
 

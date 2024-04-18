@@ -1,9 +1,16 @@
+--[[
+
+    Initial script for simulation
+
+]]
+
 local PARAMETERS = {
     SIMULATION = {
-        DOOR_ENTRY_TYPE = "TWO_WAY", -- ONE_WAY/TWO_WAY
-        DURATION = 1 * 30, -- (seconds)
-        ENTRANCE_RATE = 3, -- (students per second)
-        EXIT_RATE = 2, -- (students per second)
+        DOOR_ENTRY_TYPE = "ONE_WAY", -- ONE_WAY/TWO_WAY
+        ENTER_AMOUNT = 100,
+        ENTER_RATE = 2,
+        EXIT_AMOUNT = 50,
+        EXIT_RATE = 1,
         MAX_CAPACITY = 150,
         LOG_OUTPUT = false,
     },
@@ -15,10 +22,12 @@ local PARAMETERS = {
         SHOW_WAYPOINTS = false,
         AGENT_PARAMETERS = {
 			AgentCanJump = false,
+            AgentRadius = 3,
 			WaypointSpacing = 3,
 			Wood = 12,
 			Concrete = 6,
 			SmoothPlastic = 1,
+            -- LeftDoor = math.huge,
 		},
     },
     UI = {
