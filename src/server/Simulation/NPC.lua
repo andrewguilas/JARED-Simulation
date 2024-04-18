@@ -11,12 +11,13 @@ local Workspace = game:GetService("Workspace")
 local PathfindingService = game:GetService("PathfindingService")
 
 local Waypoints = require(script.Parent.Waypoints)
+local PARAMETERS = require(script.Parent.Parameters)
 
 local npcStorage = Workspace.Cafeteria.NPCs
 
-local function checkCollision(character, slowDistance)
+local function checkCollision(character)
 	local rayOrigin = character.Torso.CFrame.p
-	local rayDirection = character.Torso.CFrame.lookVector * slowDistance
+	local rayDirection = character.Torso.CFrame.lookVector * PARAMETERS.STUDENT.SLOW_DISTANCE
 	
     local raycastParams = RaycastParams.new()
 	raycastParams.FilterDescendantsInstances = {npcStorage}
@@ -59,11 +60,11 @@ local function checkCollision(character, slowDistance)
     return otherNPC, raycastResult.Distance
 end
 
-local function calculateWalkSpeed(STUDENT_PARAMETERS, distance)
-	return math.round(STUDENT_PARAMETERS.MAX_WALK_SPEED * (1 / (1 + 2.718 ^ (-(distance -STUDENT_PARAMETERS.SLOW_DISTANCE)))))
+local function calculateWalkSpeed(distance)
+	return math.round(PARAMETERS.STUDENT.MAX_WALK_SPEED * (1 / (1 + 2.718 ^ (-(distance - PARAMETERS.STUDENT.SLOW_DISTANCE)))))
 end
 
-function module.new(id, PARAMETERS)
+function module.new(id)
     return setmetatable({
         Character = nil,
         Humanoid = nil,
@@ -71,7 +72,6 @@ function module.new(id, PARAMETERS)
         Path = PathfindingService:CreatePath(PARAMETERS.STUDENT.AGENT_PARAMETERS),
 		WaypointParts = {},
         ID = id,
-        PARAMETERS = PARAMETERS,
     }, module)
 end
 
@@ -111,13 +111,13 @@ function module:walkTo(destinationPart)
 	self.Path:ComputeAsync(self.Character.HumanoidRootPart.Position, destinationPosition)
 	if self.Path.Status == Enum.PathStatus.NoPath then
 		-- print(string.format("Student%s: No path", self.ID))
-		task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
+		task.wait(PARAMETERS.STUDENT.UPDATE_DELAY)
 		self:walkTo(destinationPart)
 		return
 	end
 
     local waypoints = self.Path:GetWaypoints()
-	if self.PARAMETERS.SHOW_WAYPOINTS or self.Character:GetAttribute("ShowWaypoints") then
+	if PARAMETERS.STUDENT.SHOW_WAYPOINTS or self.Character:GetAttribute("ShowWaypoints") then
 		self.WaypointParts = coroutine.wrap(Waypoints.show)(waypoints, BrickColor.new("White"))
 	end
 
@@ -131,7 +131,7 @@ function module:walkTo(destinationPart)
 		if blockedConnection == nil then
 		    -- print(string.format("Student%s: Path blocked", self.ID))
 
-			task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
+			task.wait(PARAMETERS.STUDENT.UPDATE_DELAY)
 			Waypoints.destroy(self.WaypointParts)
 			self:walkTo(destinationPart)
 			return
@@ -148,7 +148,7 @@ function module:walkTo(destinationPart)
 				blockedConnection = nil
 			end
 
-			task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
+			task.wait(PARAMETERS.STUDENT.UPDATE_DELAY)
 			Waypoints.destroy(self.WaypointParts)
 			self:walkTo(destinationPart)
 			return
@@ -163,27 +163,27 @@ end
 
 function module:updateWalkSpeed()
 	while true do
-		task.wait(self.PARAMETERS.STUDENT.UPDATE_DELAY)
+		task.wait(PARAMETERS.STUDENT.UPDATE_DELAY)
 
 		if not self.Character:FindFirstChild("Torso") then
 			return
 		end
 
 		local currentStoppedDuration = self.Character:GetAttribute("StoppedDuration")
-		local otherNPC, distance = checkCollision(self.Character, self.PARAMETERS.STUDENT.SLOW_DISTANCE)
+		local otherNPC, distance = checkCollision(self.Character)
 		if currentStoppedDuration < 10 and otherNPC then
-			local newWalkSpeed = calculateWalkSpeed(self.PARAMETERS.STUDENT, distance)
+			local newWalkSpeed = calculateWalkSpeed(distance)
 			self.Humanoid.WalkSpeed = newWalkSpeed
 
 			if newWalkSpeed > 0 then
-				self.Character:SetAttribute("StoppedDuration", currentStoppedDuration + self.PARAMETERS.STUDENT.UPDATE_DELAY)
+				self.Character:SetAttribute("StoppedDuration", currentStoppedDuration + PARAMETERS.STUDENT.UPDATE_DELAY)
 			end
 
 			continue
 		end
 
 		self.Character:SetAttribute("StoppedDuration", 0)
-		self.Humanoid.WalkSpeed = self.PARAMETERS.STUDENT.MAX_WALK_SPEED
+		self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED
 	end
 end
 

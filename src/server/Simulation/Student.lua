@@ -15,6 +15,7 @@ local module = {}
 module.__index = module
 
 local NPC = require(script.Parent.NPC)
+local PARAMETERS = require(script.Parent.Parameters)
 
 setmetatable(module, NPC)
 
@@ -27,27 +28,53 @@ local function getRandomPosition(part, buffer)
 end
 
 local function getClosestDisposalArea(primaryPart, disposalAreas)
-    local distances = {}
-	local closestPart = nil
-    local closestPartDistance = math.huge
+	local closestDisposalArea = nil
+    local closestDisposalAreaDistance = math.huge
 
-    for _, part in ipairs(disposalAreas) do
-        local distance = (primaryPart.Position - part.Start.Position).Magnitude
-        distances[part] = distance
-    end
-
-    for part, distance in pairs(distances) do
-        if distance < closestPartDistance then
-            closestPart = part
-            closestPartDistance = distance
+    for _, disposalArea in ipairs(disposalAreas) do
+        local distance = (primaryPart.Position - disposalArea.Start.Position).Magnitude
+        if distance < closestDisposalAreaDistance then
+            closestDisposalArea = disposalArea
+            closestDisposalAreaDistance = distance
         end
     end
 
-    return closestPart
+    return closestDisposalArea
 end
 
-function module.new(id, PARAMETERS)
-    local newNPC = NPC.new(id, PARAMETERS)
+local function getQuickestDisposalArea(disposalAreas)
+    table.sort(disposalAreas, function(a, b) return a.UserCount < b.UserCount end)
+
+    local disposalAreasSorted = {}
+
+    for i, disposalArea in ipairs(disposalAreas) do
+        disposalAreasSorted[i - 1] = disposalArea  -- Using i - 1 for zero-based indexing
+    end
+
+    return disposalAreasSorted
+end
+
+local function chooseDisposalArea(primaryPart, disposalAreas)
+    local closestDisposalArea = getClosestDisposalArea(primaryPart, disposalAreas)
+    local disposalAreasSorted = getQuickestDisposalArea(disposalAreas)
+
+    if closestDisposalArea == disposalAreasSorted[0] then
+        return closestDisposalArea
+    end
+
+    local PATHS_DISTANCE = 40
+    local switchPathsDuration = PATHS_DISTANCE / PARAMETERS.STUDENT.MAX_WALK_SPEED
+    
+    -- if it is quicker to switch paths than waiting at the closest disposal, select that disposal
+    if switchPathsDuration < PARAMETERS.STUDENT.DISPOSING_DURATION * disposalAreasSorted[1].UserCount then
+        return disposalAreasSorted[0]
+    else
+        return closestDisposalArea
+    end
+end
+
+function module.new(id)
+    local newNPC = NPC.new(id)
 	local self = setmetatable(newNPC, module)
     self.Seat = nil
 
@@ -95,12 +122,15 @@ end
 function module:disposeTrash(disposalAreas, DISPOSING_DURATION)
     self.Character:SetAttribute("ActionCode", 2)
 
-    local closestDisposalArea = getClosestDisposalArea(self.PrimaryPart, disposalAreas)
-    self:walkTo(closestDisposalArea.Start)
-	self:walkTo(closestDisposalArea.End)
+    -- choose a disposal area depending on proximity & business
+    local chosenDisposalArea = chooseDisposalArea(self.PrimaryPart, disposalAreas)
+    chosenDisposalArea.UserCount += 1
+    self:walkTo(chosenDisposalArea.Start)
+	self:walkTo(chosenDisposalArea.End)
 
 	task.wait(DISPOSING_DURATION)
 	self.Character.Food:Destroy()
+    chosenDisposalArea.UserCount -= 1
 end
 
 function module:exitRoom(spawnArea)

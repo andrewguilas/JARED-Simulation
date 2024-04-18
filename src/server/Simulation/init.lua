@@ -17,10 +17,10 @@ function module.new(cafeteria, templates, ui)
     }, module)
 end
 
-function module:run(PARAMETERS)
+function module:run()
     task.wait(3)
-    coroutine.wrap(self.Cafeteria.run)(self.Cafeteria, PARAMETERS)
-    coroutine.wrap(self.UI.run)(self.UI, PARAMETERS)
+    coroutine.wrap(self.Cafeteria.run)(self.Cafeteria)
+    coroutine.wrap(self.UI.run)(self.UI)
 end
 
 return module

@@ -10,6 +10,8 @@ module.__index = module
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 
+local PARAMETERS = require(script.Parent.Parameters)
+
 local npcStorage = Workspace.Cafeteria.NPCs
 
 local function formatStopwatch(seconds)
@@ -25,13 +27,10 @@ function module.new(ui)
         UI = ui,
         NPCStorage = npcStorage,
         Frames = {},
-        PARAMETERS = nil,
     }, module)
 end
 
-function module:run(PARAMETERS)
-    self.PARAMETERS = PARAMETERS
-
+function module:run()
     npcStorage.ChildAdded:Connect(function(newStudent)
         self:createStudent(newStudent)
     end)
@@ -43,7 +42,7 @@ function module:run(PARAMETERS)
     coroutine.wrap(function()
         while true do
             self:update()
-            task.wait(self.PARAMETERS.UI.UPDATE_DELAY)
+            task.wait(PARAMETERS.UI.UPDATE_DELAY)
         end
     end)()
 end
@@ -63,8 +62,6 @@ function module:destroyStudent(newStudent)
 end
 
 function module:update()
-    local UI_PARAMETERS = self.PARAMETERS.UI
-
     for student, template in pairs(self.Frames) do
         if student == nil or student.PrimaryPart == nil then
             continue
@@ -74,11 +71,11 @@ function module:update()
         local zPosition = student.PrimaryPart.Position.Z / 2 * 10 * -1
         
         if student.Humanoid.WalkSpeed == 0 then
-            template.ImageColor3 = UI_PARAMETERS.STOP_COLOR
+            template.ImageColor3 = PARAMETERS.UI.STOP_COLOR
         elseif student.Humanoid.WalkSpeed < 8 then
-            template.ImageColor3 = UI_PARAMETERS.SLOW_COLOR
+            template.ImageColor3 = PARAMETERS.UI.SLOW_COLOR
         else
-            template.ImageColor3 = UI_PARAMETERS.WALK_COLOR
+            template.ImageColor3 = PARAMETERS.UI.WALK_COLOR
         end
 
         template.Position = UDim2.new(0, xPosition, 0, zPosition)
@@ -86,7 +83,7 @@ function module:update()
     end
 
     local studentCount = #npcStorage:GetChildren()
-    local maxCapacity = self.PARAMETERS.SIMULATION.MAX_CAPACITY
+    local maxCapacity = PARAMETERS.SIMULATION.MAX_CAPACITY
     local duration = formatStopwatch(Workspace.DistributedGameTime)
     local heartbeat = math.round(1 / RunService.Heartbeat:Wait())
 

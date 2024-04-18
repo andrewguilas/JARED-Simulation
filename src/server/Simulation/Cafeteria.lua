@@ -8,6 +8,7 @@ local module = {}
 module.__index = module
 
 local Student = require(script.Parent.Student)
+local PARAMETERS = require(script.Parent.Parameters)
 
 local function getRandomSeat(seats)
     local emptySeats = {}
@@ -30,13 +31,14 @@ function module.new(cafeteria, templates)
             Food = templates.Food,
         },
         TotalStudentCount = 0,
-        PARAMETERS = nil,
     }, module)
 
     for _, disposalArea in ipairs(cafeteria.DisposalAreas:GetChildren()) do
         table.insert(self.DisposalAreas, {
             Start = disposalArea.Path.DisposalAreaStart,
             End = disposalArea.Path.DisposalAreaEnd,
+            UserCount = 0,
+            Name = disposalArea.Name
         })
     end
 
@@ -59,11 +61,11 @@ end
 function module:spawnStudentsSeated()
     local studentsSeated = {}
 
-    print(string.format("Spawning %s students in seats...", self.PARAMETERS.SIMULATION.EXIT_AMOUNT))
+    print(string.format("Spawning %s students in seats...", PARAMETERS.SIMULATION.EXIT_AMOUNT))
 
-    for _ = 1, self.PARAMETERS.SIMULATION.EXIT_AMOUNT do
+    for _ = 1, PARAMETERS.SIMULATION.EXIT_AMOUNT do
         coroutine.wrap(function()
-            local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
+            local newStudent = Student.new(self.TotalStudentCount)
         
             local randomSeat = getRandomSeat(self.Seats)
             if not randomSeat then
@@ -84,42 +86,40 @@ function module:spawnStudentsSeated()
 end
 
 function module:spawnStudentsEntrance()
-    print(string.format("Spawning %s students at %s students/second...", self.PARAMETERS.SIMULATION.ENTER_AMOUNT, self.PARAMETERS.SIMULATION.ENTER_RATE))
+    print(string.format("Spawning %s students at %s students/second...", PARAMETERS.SIMULATION.ENTER_AMOUNT, PARAMETERS.SIMULATION.ENTER_RATE))
 
-    for _ = 1, self.PARAMETERS.SIMULATION.ENTER_AMOUNT do
+    for _ = 1, PARAMETERS.SIMULATION.ENTER_AMOUNT do
         coroutine.wrap(function()
-            local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
+            local newStudent = Student.new(self.TotalStudentCount)
             newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
             newStudent:getFood(self.DespawnArea)
             newStudent:despawn()
         end)()
 
         self.TotalStudentCount += 1
-        task.wait(1 / self.PARAMETERS.SIMULATION.ENTER_RATE)
+        task.wait(1 / PARAMETERS.SIMULATION.ENTER_RATE)
     end
 end
 
 function module:despawnStudents(students)
-    print(string.format("Despawning %s students at %s students/sec...", #students, self.PARAMETERS.SIMULATION.EXIT_AMOUNT))
+    print(string.format("Despawning %s students at %s students/sec...", #students, PARAMETERS.SIMULATION.EXIT_AMOUNT))
 
     for _, student in ipairs(students) do
         coroutine.wrap(function()
             student:exitSeat()
-            student:disposeTrash(self.DisposalAreas, self.PARAMETERS.STUDENT.DISPOSING_DURATION)
+            student:disposeTrash(self.DisposalAreas, PARAMETERS.STUDENT.DISPOSING_DURATION)
             student:exitRoom(self.SpawnArea)
             student:despawn()
         end)()
 
-        task.wait(1 / self.PARAMETERS.SIMULATION.EXIT_RATE)
+        task.wait(1 / PARAMETERS.SIMULATION.EXIT_RATE)
     end
 end
 
-function module:run(PARAMETERS)
-    self.PARAMETERS = PARAMETERS
-
-    local studentsSeated = self:spawnStudentsSeated()
+function module:run()
+    -- local studentsSeated = self:spawnStudentsSeated()
     coroutine.wrap(self.spawnStudentsEntrance)(self)
-    coroutine.wrap(self.despawnStudents)(self, studentsSeated)
+    -- coroutine.wrap(self.despawnStudents)(self, studentsSeated)
 end
 
 return module
