@@ -8,12 +8,15 @@ local module = {}
 module.__index = module
 
 local Student = require(script.Parent.Student)
-local getRandomItem = require(script.Parent.Helper.GetRandomItem)
 
 local function getRandomSeat(seats)
-    return getRandomItem(seats, function(seat)
-        return seat.Owner == nil
-    end)
+    local emptySeats = {}
+    for _, seat in ipairs(seats) do
+        if seat.Owner == nil then
+            table.insert(emptySeats, seat)  
+        end
+    end
+    return emptySeats[math.random(1, #emptySeats)]
 end
 
 function module.new(cafeteria, templates)
@@ -74,7 +77,7 @@ function module:spawnStudentsSeated()
             self.TotalStudentCount += 1
         end)()
 
-        task.wait(0.02)
+        task.wait(0.05)
     end
 
     return studentsSeated
@@ -87,7 +90,6 @@ function module:spawnStudentsEntrance()
         coroutine.wrap(function()
             local newStudent = Student.new(self.TotalStudentCount, self.PARAMETERS)
             newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
-            
             newStudent:getFood(self.DespawnArea)
             newStudent:despawn()
         end)()

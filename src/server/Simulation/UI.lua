@@ -21,14 +21,12 @@ local function formatStopwatch(seconds)
 end
 
 function module.new(ui)
-    local self = setmetatable({
+    return setmetatable({
         UI = ui,
         NPCStorage = npcStorage,
         Frames = {},
         PARAMETERS = nil,
     }, module)
-
-    return self
 end
 
 function module:run(PARAMETERS)
@@ -45,7 +43,7 @@ function module:run(PARAMETERS)
     coroutine.wrap(function()
         while true do
             self:update()
-            -- task.wait(self.PARAMETERS.UI.UPDATE_DELAY)
+            task.wait(self.PARAMETERS.UI.UPDATE_DELAY)
         end
     end)()
 end
@@ -87,13 +85,14 @@ function module:update()
         template.Visible = true
     end
 
-    local studentsValue = #npcStorage:GetChildren()
-    local durationValue = formatStopwatch(Workspace.DistributedGameTime)
-    local heartbeatValue = math.round(1 / RunService.Heartbeat:Wait())
+    local studentCount = #npcStorage:GetChildren()
+    local maxCapacity = self.PARAMETERS.SIMULATION.MAX_CAPACITY
+    local duration = formatStopwatch(Workspace.DistributedGameTime)
+    local heartbeat = math.round(1 / RunService.Heartbeat:Wait())
 
-    self.UI.Data.Students.Text = string.format("Students: %s/%s", studentsValue, self.PARAMETERS.SIMULATION.MAX_CAPACITY)
-    self.UI.Data.Duration.Text = string.format("Duration: %s", durationValue)
-    self.UI.Data.Heartbeat.Text = string.format("Heartbeat: %s", tostring(heartbeatValue))
+    self.UI.Data.Students.Text = string.format("Students: %s/%s", studentCount, maxCapacity)
+    self.UI.Data.Duration.Text = string.format("Duration: %s", duration)
+    self.UI.Data.Heartbeat.Text = string.format("Heartbeat: %s", tostring(heartbeat))
 end
 
 return module

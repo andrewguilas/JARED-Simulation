@@ -15,9 +15,16 @@ local module = {}
 module.__index = module
 
 local NPC = require(script.Parent.NPC)
-local getRandomPosition = require(script.Parent.Helper.GetRandomPosition)
 
 setmetatable(module, NPC)
+
+local function getRandomPosition(part, buffer)
+	local offsetX = math.random(-(part.Size.X / 2 - buffer), (part.Size.X / 2 - buffer))
+	local offsetZ = math.random(-(part.Size.Z / 2 - buffer), (part.Size.Z / 2 - buffer))
+	local spawnPosition = part.Position + Vector3.new(offsetX, buffer, offsetZ)
+    
+    return spawnPosition
+end
 
 local function getClosestDisposalArea(primaryPart, disposalAreas)
     local distances = {}
@@ -62,7 +69,7 @@ end
 
 function module:spawnEntrance(npcTemplate, spawnArea)
 	local spawnPosition = getRandomPosition(spawnArea, 5)
-    
+
     self:spawn(npcTemplate, spawnPosition)
     self.Character:SetAttribute("ActionCode", 0)
 end

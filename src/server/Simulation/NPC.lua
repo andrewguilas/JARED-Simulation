@@ -10,7 +10,7 @@ module.__index = module
 local Workspace = game:GetService("Workspace")
 local PathfindingService = game:GetService("PathfindingService")
 
-local Waypoints = require(script.parent.Helper.Waypoints)
+local Waypoints = require(script.Parent.Waypoints)
 
 local npcStorage = Workspace.Cafeteria.NPCs
 
@@ -43,7 +43,7 @@ local function checkCollision(character, slowDistance)
 	character:SetAttribute("LookingAt", otherNPC.Name)
 
     -- if both npc's are looking at each other,
-    -- the npc with without the right of way will stop
+    -- the npc with without the right of way will stops
     if otherNPC:GetAttribute("LookingAt") == character.Name then
         -- if npc is further than other npc in the cafeteria (higher action code), they have the right of way
         if character:GetAttribute("ActionCode") > otherNPC:GetAttribute("ActionCode") then
@@ -64,7 +64,7 @@ local function calculateWalkSpeed(STUDENT_PARAMETERS, distance)
 end
 
 function module.new(id, PARAMETERS)
-    local self = setmetatable({
+    return setmetatable({
         Character = nil,
         Humanoid = nil,
         PrimaryPart = nil,
@@ -73,8 +73,6 @@ function module.new(id, PARAMETERS)
         ID = id,
         PARAMETERS = PARAMETERS,
     }, module)
-
-    return self
 end
 
 function module:spawn(npcTemplate, position)
@@ -83,6 +81,7 @@ function module:spawn(npcTemplate, position)
     self.Character.Name = "Student" .. tostring(self.ID)
     self.Character:SetAttribute("ID", self.ID)
 	self.Character:SetAttribute("StoppedDuration", 0)
+	self.Character:SetAttribute("ShowWaypoints", false)
     self.Character:MoveTo(position)
 
 	self.Humanoid = self.Character.Humanoid

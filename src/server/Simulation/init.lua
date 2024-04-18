@@ -11,12 +11,10 @@ local Cafeteria = require(script.Cafeteria)
 local UI = require(script.UI)
 
 function module.new(cafeteria, templates, ui)
-    local self = setmetatable({
+    return setmetatable({
         Cafeteria = Cafeteria.new(cafeteria, templates),
         UI = UI.new(ui),
     }, module)
-
-    return self
 end
 
 function module:run(PARAMETERS)
