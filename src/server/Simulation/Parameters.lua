@@ -1,9 +1,11 @@
 return {
     SIMULATION = {
         LAYOUTS = {
+            --[[
             ["TWO_WAY_DOOR"] = {
                 IMAGE_ID = "rbxassetid://17195958646"
             },
+            ]]
             ["ONE_WAY_DOOR"] = {
                 IMAGE_ID = "rbxassetid://17195970077"
             }, 
@@ -30,6 +32,7 @@ return {
                 Concrete = 6,
                 -- LeftDoor = math.huge,
                 SmoothPlastic = 1,
+                Paths = 1,
             }
 		},
     },

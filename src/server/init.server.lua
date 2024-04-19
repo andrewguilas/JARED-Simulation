@@ -22,7 +22,7 @@ local function main()
     end
     
     for layoutName, _ in pairs(PARAMETERS.SIMULATION.LAYOUTS) do
-        local cafeteria = layouts[layoutName]:Clone()
+        local cafeteria = Workspace:FindFirstChild(layoutName) or layouts[layoutName]:Clone()
         cafeteria.Parent = Workspace
 
         local simulation = Simulation.new(cafeteria, templates, ui)
