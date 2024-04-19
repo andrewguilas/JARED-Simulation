@@ -9,6 +9,7 @@ module.__index = module
 
 local Student = require(script.Parent.Student)
 local PARAMETERS = require(script.Parent.Parameters)
+local DataCollection = require(script.Parent.DataCollection)
 
 local function getRandomSeat(seats)
     local emptySeats = {}
@@ -65,7 +66,7 @@ function module:spawnStudentsSeated()
     -- print(string.format("Spawning %s students in seats...", PARAMETERS.SIMULATION.EXIT_AMOUNT))
 
     for _ = 1, PARAMETERS.SIMULATION.EXIT_AMOUNT do
-        coroutine.wrap(function()
+        coroutine.wrap(function()            
             local newStudent = Student.new(self.TotalStudentCount, self.CafeteriaModel)
         
             local randomSeat = getRandomSeat(self.Seats)
@@ -74,6 +75,7 @@ function module:spawnStudentsSeated()
             end
             
             newStudent:spawnSeated(self.Templates.Student, randomSeat)
+            DataCollection.trackNPC(self.CafeteriaModel.Name, newStudent.Character)
             newStudent:giveFood(self.Templates.Food)
     
             table.insert(studentsSeated, newStudent)
@@ -91,10 +93,16 @@ function module:spawnStudentsEntrance()
 
     for _ = 1, PARAMETERS.SIMULATION.ENTER_AMOUNT do
         coroutine.wrap(function()
+            local startTime = os.time()
+
             local newStudent = Student.new(self.TotalStudentCount, self.CafeteriaModel)
             newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
+            DataCollection.trackNPC(self.CafeteriaModel.Name, newStudent.Character)
             newStudent:getFood(self.DespawnArea)
+            DataCollection.removeNPC(self.CafeteriaModel.Name, newStudent.Character)
             newStudent:despawn()
+
+            DataCollection.addEnterDuration(self.CafeteriaModel.Name, os.time() - startTime)
         end)()
 
         self.TotalStudentCount += 1
@@ -107,10 +115,15 @@ function module:despawnStudents(students)
 
     for _, student in ipairs(students) do
         coroutine.wrap(function()
+            local startTime = os.time()
+
             student:exitSeat()
             student:disposeTrash(self.DisposalAreas, PARAMETERS.STUDENT.DISPOSING_DURATION)
             student:exitRoom(self.SpawnArea)
+            DataCollection.removeNPC(self.CafeteriaModel.Name, student.Character)
             student:despawn()
+
+            DataCollection.addExitDuration(self.CafeteriaModel.Name, os.time() - startTime)
         end)()
 
         task.wait(1 / PARAMETERS.SIMULATION.EXIT_RATE)

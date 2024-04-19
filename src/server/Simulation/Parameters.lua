@@ -35,9 +35,12 @@ return {
 		},
     },
     UI = {
-        UPDATE_DELAY = 0.03,
+        UPDATE_POSITIONS_DELAY = 0.05,
+        UPDATE_STATS_DELAY = 1,
+        UPDATE_HEATMAP_DELAY = 0.5,
         STOP_COLOR = Color3.fromRGB(255, 0, 0),
         SLOW_COLOR = Color3.fromRGB(255, 180, 180),
         WALK_COLOR = Color3.fromRGB(255, 255, 255),
+        HEATMAP_NODE_SIZE = 25, -- multiples of 500 and 250: 1, 2, 5, 10, 25, 50, 125, and 250
     },
 }

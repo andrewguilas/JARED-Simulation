@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 
 local PARAMETERS = require(script.Parent.Parameters)
+local DataCollection = require(script.Parent.DataCollection)
 
 local function formatStopwatch(seconds)
     local hours = math.floor(seconds / 3600)
@@ -20,9 +21,28 @@ local function formatStopwatch(seconds)
     return string.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
 end
 
+local function getGradientColor(percentage)
+    -- Ensure the percentage is within the valid range
+    percentage = math.max(0, math.min(100, percentage))
+    
+    -- Define RGB values for green and red
+    local green = {0, 255, 0}
+    local red = {255, 0, 0}
+    
+    -- Interpolate between green and red based on the percentage
+    local color = {}
+    for i = 1, 3 do
+        color[i] = math.floor(green[i] + (red[i] - green[i]) * (percentage / 100))
+    end
+    
+    -- Return the interpolated color
+    return Color3.fromRGB(color[1], color[2], color[3])
+end
+
 function module.new(ui, cafeteriaModel)
     local self = setmetatable({
         UI = ui,
+        LayoutName = cafeteriaModel.Name,
         Layout = nil,
         NPCStorage = cafeteriaModel.NPCs,
         Frames = {},
@@ -30,8 +50,8 @@ function module.new(ui, cafeteriaModel)
 
     self.Layout = self.UI.Background.UIGridLayout.LayoutTemplate:Clone()
     self.Layout.Parent = self.UI.Background
-    self.Layout.Map.Image = PARAMETERS.SIMULATION.LAYOUTS[cafeteriaModel.Name]["IMAGE_ID"]
-    self.Layout.Stats.Layout.Text = cafeteriaModel.Name
+    self.Layout.Map.Image = PARAMETERS.SIMULATION.LAYOUTS[self.LayoutName]["IMAGE_ID"]
+    self.Layout.Stats.Layout.Text = self.LayoutName
 
     return self
 end
@@ -47,8 +67,22 @@ function module:run()
 
     coroutine.wrap(function()
         while true do
-            self:update()
-            task.wait(PARAMETERS.UI.UPDATE_DELAY)
+            self:updatePositions()
+            task.wait(PARAMETERS.UI.UPDATE_POSITIONS_DELAY)
+        end
+    end)()
+
+    coroutine.wrap(function()
+        while true do
+            self:updateStats()
+            task.wait(PARAMETERS.UI.UPDATE_STATS_DELAY)
+        end
+    end)()
+
+    coroutine.wrap(function()
+        while true do
+            self:updateHeatmap()
+            task.wait(PARAMETERS.UI.UPDATE_HEATMAP_DELAY)
         end
     end)()
 end
@@ -68,7 +102,7 @@ function module:destroyStudent(newStudent)
     end
 end
 
-function module:update()
+function module:updatePositions()
     for student, template in pairs(self.Frames) do
         if student == nil or student.PrimaryPart == nil then
             continue
@@ -90,15 +124,42 @@ function module:update()
         template.Position = UDim2.new(0, xPosition, 0, zPosition)
         template.Visible = true
     end
+end
 
+function module:updateStats()
     local studentCount = #self.NPCStorage:GetChildren()
     local maxCapacity = PARAMETERS.SIMULATION.MAX_CAPACITY
     local duration = formatStopwatch(Workspace.DistributedGameTime)
-    local heartbeat = math.round(1 / RunService.Heartbeat:Wait())
+    local fps = math.round(1 / RunService.Heartbeat:Wait())
+    local averageEnterDuration = DataCollection.getAverageEnterDuration(self.LayoutName) or 0
+    local averageExitDuration = DataCollection.getAverageExitDuration(self.LayoutName) or 0
 
+    self.Layout.Stats.FPS.Text = string.format("%s FPS", fps)
     self.Layout.Stats.Capacity.Text = string.format("%s/%s", studentCount, maxCapacity)
     self.Layout.Stats.RunTime.Text = string.format("%s", duration)
-    self.Layout.Stats.AverageTimes.Text = string.format("%s-%s", 0, 0) -- TO DO
+    self.Layout.Stats.AverageTimes.Text = string.format("%s-%s", math.round(averageEnterDuration), math.round(averageExitDuration))
+end
+
+function module:updateHeatmap()
+    local positions = DataCollection.getPositions(self.LayoutName)
+    for _, coordinate in pairs(positions) do
+        local index = string.format("%s.%s", coordinate.X, coordinate.Y)
+        local node = self.Layout.Heatmap:FindFirstChild(index)
+        if node == nil then
+            node = Instance.new("Frame")
+            node.Name = index
+            node.Position = UDim2.new(0, coordinate.X, 0, coordinate.Y)
+            node.Size = UDim2.new(0, PARAMETERS.UI.HEATMAP_NODE_SIZE, 0, PARAMETERS.UI.HEATMAP_NODE_SIZE)
+            node.BackgroundColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+            node.BorderSizePixel = 0
+            -- node.Text = "0"
+            node.Parent = self.Layout.Heatmap
+        end
+
+        local multiplier = 1 - coordinate.Percentage
+        node.BackgroundColor3 = Color3.fromRGB(255, 255 * multiplier, 255 * multiplier)
+        -- node.Text = math.round(coordinate.Percentage * 100)
+    end
 end
 
 return module
