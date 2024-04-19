@@ -1,11 +1,9 @@
 return {
     SIMULATION = {
         LAYOUTS = {
-            --[[
             ["TWO_WAY_DOOR"] = {
                 IMAGE_ID = "rbxassetid://17195958646"
             },
-            ]]
             ["ONE_WAY_DOOR"] = {
                 IMAGE_ID = "rbxassetid://17195970077"
             }, 
@@ -29,7 +27,7 @@ return {
 			WaypointSpacing = 3,
             Costs = {
                 Wood = 12,
-                Concrete = 6,
+                Concrete = 2,
                 -- LeftDoor = math.huge,
                 SmoothPlastic = 1,
                 Paths = 1,

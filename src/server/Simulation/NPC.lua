@@ -9,9 +9,45 @@ module.__index = module
 
 local Workspace = game:GetService("Workspace")
 local PathfindingService = game:GetService("PathfindingService")
+local Debris = game:GetService("Debris")
 
-local Waypoints = require(script.Parent.Waypoints)
 local PARAMETERS = require(script.Parent.Parameters)
+
+local function showWaypoints(waypoints, waypointParts, color, duration)
+	local waypointsFolder = Workspace:FindFirstChild("Waypoints")
+	if not waypointsFolder then
+		waypointsFolder = Instance.new("Folder")
+		waypointsFolder.Name = "Waypoints"
+		waypointsFolder.Parent = Workspace
+	end
+
+	for _, waypoint in ipairs(waypoints) do
+		local waypointPart = Instance.new("Part")
+		waypointPart.Shape = Enum.PartType.Ball
+		waypointPart.Position = waypoint.Position
+		waypointPart.BrickColor = color
+		waypointPart.Material = Enum.Material.Neon
+		waypointPart.CanCollide = false
+		waypointPart.Anchored = true
+		waypointPart.Size = Vector3.new(1, 1, 1)
+		waypointPart.Parent = waypointsFolder
+
+		table.insert(waypointParts, waypointPart)
+
+        if duration then
+		    Debris:AddItem(waypointPart, duration)
+        end
+
+        task.wait()
+	end
+
+end
+
+local function destroyWaypoints(waypointParts)
+	for _, waypointPart in ipairs(waypointParts) do
+		waypointPart:Destroy()
+	end
+end
 
 local function checkCollision(character, npcStorage)
 	local rayOrigin = character.Torso.CFrame.p
@@ -41,20 +77,13 @@ local function checkCollision(character, npcStorage)
 
 	character:SetAttribute("LookingAt", otherNPC.Name)
 
-    -- if both npc's are looking at each other,
-    -- the npc with without the right of way will stops
-    if character:GetAttribute("LookingAt") == otherNPC.Name and otherNPC:GetAttribute("LookingAt") == character.Name then
-        -- if npc is further than other npc in the cafeteria (higher action code), they have the right of way
-        if character:GetAttribute("ActionCode") > otherNPC:GetAttribute("ActionCode") then
-            return false
-        end
+	-- print(character:GetAttribute("LookingAt"), otherNPC.Name, otherNPC:GetAttribute("LookingAt"), character.Name)
 
-        -- if npc spawned first (has a lower id), they have the right of way
-        if character:GetAttribute("ID") < otherNPC:GetAttribute("ID") then
-            return false
-        end
-    end
-
+	-- if npc spawned first (has a lower id), go through them
+	if character:GetAttribute("ID") < otherNPC:GetAttribute("ID") then	
+		return false
+	end
+	
     return otherNPC, raycastResult.Distance
 end
 
@@ -118,7 +147,7 @@ function module:walkTo(destinationPart)
 
     local waypoints = self.Path:GetWaypoints()
 	if PARAMETERS.STUDENT.SHOW_WAYPOINTS or self.Character:GetAttribute("ShowWaypoints") then
-		self.WaypointParts = coroutine.wrap(Waypoints.show)(waypoints, BrickColor.new("White"))
+		coroutine.wrap(showWaypoints)(waypoints, self.WaypointParts, BrickColor.new("White"))
 	end
 
 	local blockedConnection
@@ -132,7 +161,7 @@ function module:walkTo(destinationPart)
 		    -- print(string.format("Student%s: Path blocked", self.ID))
 
 			task.wait(PARAMETERS.STUDENT.UPDATE_DELAY)
-			Waypoints.destroy(self.WaypointParts)
+			destroyWaypoints(self.WaypointParts)
 			self:walkTo(destinationPart)
 			return
 		end
@@ -149,13 +178,13 @@ function module:walkTo(destinationPart)
 			end
 
 			task.wait(PARAMETERS.STUDENT.UPDATE_DELAY)
-			Waypoints.destroy(self.WaypointParts)
+			destroyWaypoints(self.WaypointParts)
 			self:walkTo(destinationPart)
 			return
 		end
 	end
 
-    Waypoints.destroy(self.WaypointParts)
+    destroyWaypoints(self.WaypointParts)
 	if blockedConnection then
 		blockedConnection:Disconnect()
 	end
@@ -170,7 +199,7 @@ function module:updateWalkSpeed()
 		end
 
 		local currentStoppedDuration = self.Character:GetAttribute("StoppedDuration")
-		local otherNPC, distance = checkCollision(self.Character)
+		local otherNPC, distance = checkCollision(self.Character, self.CafeteriaModel.NPCs)
 		if otherNPC and currentStoppedDuration < 10 then
 			self.Character.Head.BrickColor = BrickColor.new("Really red")
 			local newWalkSpeed = calculateWalkSpeed(distance)
@@ -179,13 +208,13 @@ function module:updateWalkSpeed()
 			if newWalkSpeed > 0 then
 				self.Character:SetAttribute("StoppedDuration", currentStoppedDuration + PARAMETERS.STUDENT.UPDATE_DELAY)
 			end
-
-			continue
+		else
+			self.Character.Head.BrickColor = BrickColor.new("Bright yellow")
+			self.Character:SetAttribute("StoppedDuration", 0)
+			self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED
 		end
 
-		self.Character.Head.BrickColor = BrickColor.new("Bright yellow")
-		self.Character:SetAttribute("StoppedDuration", 0)
-		self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED
+
 	end
 end
 
