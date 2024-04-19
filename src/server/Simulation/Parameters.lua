@@ -1,6 +1,13 @@
 return {
     SIMULATION = {
-        DOOR_ENTRY_TYPE = "ONE_WAY", -- ONE_WAY/TWO_WAY
+        LAYOUTS = {
+            ["TWO_WAY_DOOR"] = {
+                IMAGE_ID = "rbxassetid://17195958646"
+            },
+            ["ONE_WAY_DOOR"] = {
+                IMAGE_ID = "rbxassetid://17195970077"
+            }, 
+        },
         ENTER_AMOUNT = 100,
         ENTER_RATE = 2,
         EXIT_AMOUNT = 50,
@@ -16,12 +23,14 @@ return {
         SHOW_WAYPOINTS = false,
         AGENT_PARAMETERS = {
 			AgentCanJump = false,
-            AgentRadius = 3,
+            AgentRadius = 2,
 			WaypointSpacing = 3,
-			Wood = 12,
-			Concrete = 6,
-			SmoothPlastic = 1,
-            -- LeftDoor = math.huge,
+            Costs = {
+                Wood = 12,
+                Concrete = 6,
+                -- LeftDoor = math.huge,
+                SmoothPlastic = 1,
+            }
 		},
     },
     UI = {

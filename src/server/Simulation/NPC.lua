@@ -13,9 +13,7 @@ local PathfindingService = game:GetService("PathfindingService")
 local Waypoints = require(script.Parent.Waypoints)
 local PARAMETERS = require(script.Parent.Parameters)
 
-local npcStorage = Workspace.Cafeteria.NPCs
-
-local function checkCollision(character)
+local function checkCollision(character, npcStorage)
 	local rayOrigin = character.Torso.CFrame.p
 	local rayDirection = character.Torso.CFrame.lookVector * PARAMETERS.STUDENT.SLOW_DISTANCE
 	
@@ -45,7 +43,7 @@ local function checkCollision(character)
 
     -- if both npc's are looking at each other,
     -- the npc with without the right of way will stops
-    if otherNPC:GetAttribute("LookingAt") == character.Name then
+    if character:GetAttribute("LookingAt") == otherNPC.Name and otherNPC:GetAttribute("LookingAt") == character.Name then
         -- if npc is further than other npc in the cafeteria (higher action code), they have the right of way
         if character:GetAttribute("ActionCode") > otherNPC:GetAttribute("ActionCode") then
             return false
@@ -69,15 +67,16 @@ function module.new(id)
         Character = nil,
         Humanoid = nil,
         PrimaryPart = nil,
-        Path = PathfindingService:CreatePath(PARAMETERS.STUDENT.AGENT_PARAMETERS),
+        Path = nil,
 		WaypointParts = {},
         ID = id,
+		CafeteriaModel = nil,
     }, module)
 end
 
-function module:spawn(npcTemplate, position)
+function module:spawn(npcTemplate, position, agentParameters)
     self.Character = npcTemplate:Clone()
-    self.Character.Parent = npcStorage
+    self.Character.Parent = self.CafeteriaModel.NPCs
     self.Character.Name = "Student" .. tostring(self.ID)
     self.Character:SetAttribute("ID", self.ID)
 	self.Character:SetAttribute("StoppedDuration", 0)
@@ -86,6 +85,7 @@ function module:spawn(npcTemplate, position)
 
 	self.Humanoid = self.Character.Humanoid
 	self.PrimaryPart = self.Character.PrimaryPart
+	self.Path = PathfindingService:CreatePath(agentParameters)
 
     coroutine.wrap(self.updateWalkSpeed)(self)
 end
@@ -171,7 +171,8 @@ function module:updateWalkSpeed()
 
 		local currentStoppedDuration = self.Character:GetAttribute("StoppedDuration")
 		local otherNPC, distance = checkCollision(self.Character)
-		if currentStoppedDuration < 10 and otherNPC then
+		if otherNPC and currentStoppedDuration < 10 then
+			self.Character.Head.BrickColor = BrickColor.new("Really red")
 			local newWalkSpeed = calculateWalkSpeed(distance)
 			self.Humanoid.WalkSpeed = newWalkSpeed
 
@@ -182,6 +183,7 @@ function module:updateWalkSpeed()
 			continue
 		end
 
+		self.Character.Head.BrickColor = BrickColor.new("Bright yellow")
 		self.Character:SetAttribute("StoppedDuration", 0)
 		self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED
 	end

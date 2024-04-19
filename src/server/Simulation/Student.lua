@@ -73,16 +73,38 @@ local function chooseDisposalArea(primaryPart, disposalAreas)
     end
 end
 
-function module.new(id)
+local function cloneTable(original)
+    local seen = {}  -- Table to keep track of already cloned tables
+    local function clone(obj)
+        if type(obj) ~= 'table' then return obj end
+        if seen[obj] then return seen[obj] end
+        local new_table = {}
+        seen[obj] = new_table
+        for key, value in pairs(obj) do
+            new_table[clone(key)] = clone(value)
+        end
+        return setmetatable(new_table, getmetatable(obj))
+    end
+    return clone(original)
+end
+
+function module.new(id, cafeteriaModel)
     local newNPC = NPC.new(id)
 	local self = setmetatable(newNPC, module)
     self.Seat = nil
+    self.CafeteriaModel = cafeteriaModel
 
     return self
 end
 
 function module:spawnSeated(npcTemplate, randomSeat)
-    self:spawn(npcTemplate, randomSeat.Seat.Position)
+	local agentParameters = cloneTable(PARAMETERS.STUDENT.AGENT_PARAMETERS)
+	if PARAMETERS.SIMULATION.LAYOUT == "ONE_WAY_DOOR" then
+        -- make sure students don't go through the doors to get to the closest disposal
+		agentParameters["Costs"]["RightDoor"] = math.huge
+	end
+
+    self:spawn(npcTemplate, randomSeat.Seat.Position, agentParameters)
     self.Character:SetAttribute("ActionCode", 0)
 
     self.Seat = randomSeat
@@ -97,7 +119,13 @@ end
 function module:spawnEntrance(npcTemplate, spawnArea)
 	local spawnPosition = getRandomPosition(spawnArea, 5)
 
-    self:spawn(npcTemplate, spawnPosition)
+	local agentParameters = cloneTable(PARAMETERS.STUDENT.AGENT_PARAMETERS)
+	if PARAMETERS.SIMULATION.LAYOUT == "ONE_WAY_DOOR" then
+        -- make students entering only go through right door
+		agentParameters["Costs"]["LeftDoor"] = math.huge
+	end
+
+    self:spawn(npcTemplate, spawnPosition, agentParameters)
     self.Character:SetAttribute("ActionCode", 0)
 end
 

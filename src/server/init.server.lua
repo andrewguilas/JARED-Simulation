@@ -9,14 +9,25 @@ local ServerStorage = game:GetService("ServerStorage")
 local StarterGui = game:GetService("StarterGui")
 
 local Simulation = require(script.Simulation)
+local PARAMETERS = require(script.Simulation.Parameters)
 
-local cafeteria = Workspace.Cafeteria
-local templates = ServerStorage
-local UI = StarterGui.UI
+local layouts = ServerStorage.Layouts
+local templates = ServerStorage.Templates
+local ui = StarterGui.UI
 
 local function main()
-    local simulation = Simulation.new(cafeteria, templates, UI)
-    simulation:run()
+    for seconds = 3, 1, -1 do
+        print(string.format("Starting simulation in %s seconds...", seconds))
+        task.wait(1)
+    end
+    
+    for layoutName, _ in pairs(PARAMETERS.SIMULATION.LAYOUTS) do
+        local cafeteria = layouts[layoutName]:Clone()
+        cafeteria.Parent = Workspace
+
+        local simulation = Simulation.new(cafeteria, templates, ui)
+        simulation:run()
+    end
 end
 
 main()
