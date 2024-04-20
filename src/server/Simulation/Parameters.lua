@@ -29,7 +29,7 @@ return {
                 Wood = 12,
                 Concrete = 2,
                 -- LeftDoor = math.huge,
-                SmoothPlastic = 1,
+                -- SmoothPlastic = 1,
                 Paths = 1,
             }
 		},

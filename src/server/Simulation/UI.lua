@@ -141,7 +141,8 @@ function module:updateStats()
 end
 
 function module:updateHeatmap()
-    local positions = DataCollection.getPositions(self.LayoutName)
+    -- local positions = DataCollection.getPositions(self.LayoutName)
+    local positions = DataCollection.getCumulativePositions(self.LayoutName)
     for _, coordinate in pairs(positions) do
         local index = string.format("%s.%s", coordinate.X, coordinate.Y)
         local node = self.Layout.Heatmap:FindFirstChild(index)
