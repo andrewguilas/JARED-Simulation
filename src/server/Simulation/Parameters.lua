@@ -1,11 +1,17 @@
 return {
     SIMULATION = {
         LAYOUTS = {
-            ["TWO_WAY_DOOR"] = {
-                IMAGE_ID = "rbxassetid://17195958646"
+            ["TWO_WAY"] = {
+                IMAGE_ID = "rbxassetid://17195958646",
+                LAYOUT_ORDER = 1,
             },
-            ["ONE_WAY_DOOR"] = {
-                IMAGE_ID = "rbxassetid://17195970077"
+            ["ONE_WAY"] = {
+                IMAGE_ID = "rbxassetid://17195970077",
+                LAYOUT_ORDER = 2,
+            }, 
+            ["ONE_WAY_SAME_SIDE"] = {
+                IMAGE_ID = "rbxassetid://17212371736",
+                LAYOUT_ORDER = 3,
             }, 
         },
         ENTER_AMOUNT = 100,
@@ -17,9 +23,9 @@ return {
     },
     STUDENT = {
         MAX_WALK_SPEED = 16,
-        SLOW_DISTANCE = 6,
-        UPDATE_DELAY = 0.5,
-        DISPOSING_DURATION = 2,
+        SLOW_DISTANCE = 10,
+        UPDATE_DELAY = 0.25,
+        DISPOSING_DURATION = 5,
         SHOW_WAYPOINTS = false,
         AGENT_PARAMETERS = {
 			AgentCanJump = false,

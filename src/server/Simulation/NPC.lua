@@ -89,7 +89,7 @@ local function checkCollision(character, npcStorage)
 end
 
 local function calculateWalkSpeed(distance)
-	return math.round(PARAMETERS.STUDENT.MAX_WALK_SPEED * (1 / (1 + 2.718 ^ (-(distance - PARAMETERS.STUDENT.SLOW_DISTANCE)))))
+	return math.round(PARAMETERS.STUDENT.MAX_WALK_SPEED + 3 * (distance - PARAMETERS.STUDENT.SLOW_DISTANCE))
 end
 
 function module.new(id)
@@ -212,6 +212,11 @@ function module:updateWalkSpeed()
 
 			DataCollection.addCollision(self.CafeteriaModel.Name, self.Character)
 		else
+			-- slowly accelerate
+			if self.Humanoid.WalkSpeed == 0 then
+				task.wait(0.5)
+			end
+
 			self.Character.Head.BrickColor = BrickColor.new("Bright yellow")
 			self.Character:SetAttribute("StoppedDuration", 0)
 			self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED

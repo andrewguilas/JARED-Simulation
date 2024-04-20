@@ -99,7 +99,7 @@ end
 
 function module:spawnSeated(npcTemplate, randomSeat)
 	local agentParameters = cloneTable(PARAMETERS.STUDENT.AGENT_PARAMETERS)
-	if self.CafeteriaModel.Name == "ONE_WAY_DOOR" then
+	if string.find(self.CafeteriaModel.Name, "ONE_WAY") then
         -- make sure students don't go through the doors to get to the closest disposal
 		agentParameters["Costs"]["RightDoor"] = math.huge
 	end
@@ -120,7 +120,7 @@ function module:spawnEntrance(npcTemplate, spawnArea)
 	local spawnPosition = getRandomPosition(spawnArea, 5)
 
 	local agentParameters = cloneTable(PARAMETERS.STUDENT.AGENT_PARAMETERS)
-	if self.CafeteriaModel.Name == "ONE_WAY_DOOR" then
+	if string.find(self.CafeteriaModel.Name, "ONE_WAY") then
         -- make students entering only go through right door
 		agentParameters["Costs"]["LeftDoor"] = math.huge
 	end

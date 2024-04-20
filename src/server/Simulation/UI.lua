@@ -48,9 +48,12 @@ function module.new(ui, cafeteriaModel)
         Frames = {},
     }, module)
 
+    self.UI.Loading.Visible = false
+    
     self.Layout = self.UI.Background.UIGridLayout.LayoutTemplate:Clone()
+    self.Layout.LayoutOrder = PARAMETERS.SIMULATION.LAYOUTS[self.LayoutName].LAYOUT_ORDER
     self.Layout.Parent = self.UI.Background
-    self.Layout.Map.Image = PARAMETERS.SIMULATION.LAYOUTS[self.LayoutName]["IMAGE_ID"]
+    self.Layout.Map.Image = PARAMETERS.SIMULATION.LAYOUTS[self.LayoutName].IMAGE_ID
     self.Layout.Stats.Layout.Text = self.LayoutName
 
     return self
