@@ -12,6 +12,7 @@ local PathfindingService = game:GetService("PathfindingService")
 local Debris = game:GetService("Debris")
 
 local PARAMETERS = require(script.Parent.Parameters)
+local DataCollection = require(script.Parent.DataCollection)
 
 local function showWaypoints(waypoints, waypointParts, color, duration)
 	local waypointsFolder = Workspace:FindFirstChild("Waypoints")
@@ -208,6 +209,8 @@ function module:updateWalkSpeed()
 			if newWalkSpeed > 0 then
 				self.Character:SetAttribute("StoppedDuration", currentStoppedDuration + PARAMETERS.STUDENT.UPDATE_DELAY)
 			end
+
+			DataCollection.addCollision(self.CafeteriaModel.Name, self.Character)
 		else
 			self.Character.Head.BrickColor = BrickColor.new("Bright yellow")
 			self.Character:SetAttribute("StoppedDuration", 0)

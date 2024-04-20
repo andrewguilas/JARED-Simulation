@@ -125,7 +125,6 @@ function module:spawnEntrance(npcTemplate, spawnArea)
 		agentParameters["Costs"]["LeftDoor"] = math.huge
 	end
 
-    print(agentParameters)
     self:spawn(npcTemplate, spawnPosition, agentParameters)
     self.Character:SetAttribute("ActionCode", 0)
 end

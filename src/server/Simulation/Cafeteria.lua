@@ -75,7 +75,6 @@ function module:spawnStudentsSeated()
             end
             
             newStudent:spawnSeated(self.Templates.Student, randomSeat)
-            DataCollection.trackNPC(self.CafeteriaModel.Name, newStudent.Character)
             newStudent:giveFood(self.Templates.Food)
     
             table.insert(studentsSeated, newStudent)
@@ -97,9 +96,7 @@ function module:spawnStudentsEntrance()
 
             local newStudent = Student.new(self.TotalStudentCount, self.CafeteriaModel)
             newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
-            DataCollection.trackNPC(self.CafeteriaModel.Name, newStudent.Character)
             newStudent:getFood(self.DespawnArea)
-            DataCollection.removeNPC(self.CafeteriaModel.Name, newStudent.Character)
             newStudent:despawn()
 
             DataCollection.addEnterDuration(self.CafeteriaModel.Name, os.time() - startTime)
@@ -120,7 +117,6 @@ function module:despawnStudents(students)
             student:exitSeat()
             student:disposeTrash(self.DisposalAreas, PARAMETERS.STUDENT.DISPOSING_DURATION)
             student:exitRoom(self.SpawnArea)
-            DataCollection.removeNPC(self.CafeteriaModel.Name, student.Character)
             student:despawn()
 
             DataCollection.addExitDuration(self.CafeteriaModel.Name, os.time() - startTime)

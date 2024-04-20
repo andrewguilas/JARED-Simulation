@@ -8,30 +8,10 @@ local function main()
         globalData[layoutName] = {
             EnterDurations = {},
             ExitDurations = {},
-            Positions = {},
-            CumulativePositions = {},
+            HighestCollisionCount = 0,
+            Collisions = {},
             NPCs = {},
         }
-
-        --[[
-        for xPosition = 0, 490 - PARAMETERS.UI.HEATMAP_NODE_SIZE, PARAMETERS.UI.HEATMAP_NODE_SIZE do
-            for yPosition = 0, 250 - PARAMETERS.UI.HEATMAP_NODE_SIZE, PARAMETERS.UI.HEATMAP_NODE_SIZE do
-                local index = string.format("%s.%s", xPosition, yPosition)
-                globalData[layoutName].Positions[index] = {
-                    X = xPosition,
-                    Y = yPosition,
-                    Count = 0,
-                    Percentage = 0,
-                }
-                globalData[layoutName].CumulativePositions[index] = {
-                    X = xPosition,
-                    Y = yPosition,
-                    Count = 0,
-                    Percentage = 0,
-                }
-            end
-        end
-        ]]
     end
 end
 
@@ -53,6 +33,10 @@ local function getAverage(tbl)
     end
 end
 
+local function getUIPosition(position)
+    return math.abs(math.round(position * 3 / PARAMETERS.UI.HEATMAP_NODE_SIZE) * PARAMETERS.UI.HEATMAP_NODE_SIZE)
+end
+
 function methods.addEnterDuration(layoutName, duration)
     table.insert(globalData[layoutName].EnterDurations, duration)
 end
@@ -69,88 +53,37 @@ function methods.getAverageExitDuration(layoutName)
     return getAverage(globalData[layoutName].ExitDurations)
 end
 
-function methods.updatePositions(layoutName)
-    for index, _ in pairs(globalData[layoutName].Positions) do
-        globalData[layoutName].Positions[index].Count = 0
+function methods.addCollision(layoutName, npc)
+    local xPosition = getUIPosition(npc.PrimaryPart.Position.X)
+    local yPosition = getUIPosition(npc.PrimaryPart.Position.Z)
+    local index = string.format("%s.%s", xPosition, yPosition)
+
+    if globalData[layoutName].Collisions[index] == nil then
+        globalData[layoutName].Collisions[index] = {
+            X = xPosition,
+            Y = yPosition,
+            Count = 1,
+            Percentage = 0,
+        }
+
+        return
     end
 
-    local maxValue = 0
-    local maxCumulativeValue = 0
+    globalData[layoutName].Collisions[index].Count += 1
 
-    for _, npc in ipairs(globalData[layoutName].NPCs) do
-        local xPosition = math.abs(math.round(npc.PrimaryPart.Position.X * 3 / PARAMETERS.UI.HEATMAP_NODE_SIZE) * PARAMETERS.UI.HEATMAP_NODE_SIZE)
-        local yPosition = math.abs(math.round(npc.PrimaryPart.Position.Z * 3 / PARAMETERS.UI.HEATMAP_NODE_SIZE) * PARAMETERS.UI.HEATMAP_NODE_SIZE)
-        local index = string.format("%s.%s", xPosition, yPosition)
-
-        if xPosition == 500 then
-            xPosition = 500 - PARAMETERS.UI.HEATMAP_NODE_SIZE
-        end
-
-        if yPosition == 250 then
-            yPosition = 250 - PARAMETERS.UI.HEATMAP_NODE_SIZE
-        end
-
-        if globalData[layoutName].Positions[index] == nil then
-            globalData[layoutName].Positions[index] = {
-                X = xPosition,
-                Y = yPosition,
-                Count = 0,
-                Percentage = 0,
-            }
-            globalData[layoutName].CumulativePositions[index] = {
-                X = xPosition,
-                Y = yPosition,
-                Count = 0,
-                Percentage = 0,
-            }
-        end
-
-        globalData[layoutName].Positions[index].Count += 1
-        globalData[layoutName].CumulativePositions[index].Count += 1
-
-        if globalData[layoutName].Positions[index].Count > maxValue then
-            maxValue = globalData[layoutName].Positions[index].Count
-        end
-
-        if globalData[layoutName].CumulativePositions[index].Count > maxCumulativeValue then
-            maxCumulativeValue = globalData[layoutName].CumulativePositions[index].Count
-        end
+    if globalData[layoutName].Collisions[index].Count > globalData[layoutName].HighestCollisionCount then
+        globalData[layoutName].HighestCollisionCount = globalData[layoutName].Collisions[index].Count
     end
 
-    for _, npc in ipairs(globalData[layoutName].NPCs) do
-        local xPosition = math.abs(math.round(npc.PrimaryPart.Position.X * 3 / PARAMETERS.UI.HEATMAP_NODE_SIZE) * PARAMETERS.UI.HEATMAP_NODE_SIZE)
-        local yPosition = math.abs(math.round(npc.PrimaryPart.Position.Z * 3 / PARAMETERS.UI.HEATMAP_NODE_SIZE) * PARAMETERS.UI.HEATMAP_NODE_SIZE)
-        local index = string.format("%s.%s", xPosition, yPosition)
+    -- note: positions don't get updated until methods.getCollisions() is called
+end
 
-        globalData[layoutName].Positions[index].Percentage = globalData[layoutName].Positions[index].Count / maxValue
-        globalData[layoutName].CumulativePositions[index].Percentage = globalData[layoutName].CumulativePositions[index].Count / maxCumulativeValue
-    
+function methods.getCollisions(layoutName)
+    for _, data in pairs(globalData[layoutName].Collisions) do
+        data.Percentage = data.Count / globalData[layoutName].HighestCollisionCount
     end
 
-
-end
-
-function methods.getPositions(layoutName)
-    methods.updatePositions(layoutName)
-    return globalData[layoutName].Positions
-end
-
-function methods.getCumulativePositions(layoutName)
-    methods.updatePositions(layoutName)
-    return globalData[layoutName].CumulativePositions
-end
-
-function methods.trackNPC(layoutName, npc)
-    table.insert(globalData[layoutName].NPCs, npc)
-end
-
-function methods.removeNPC(layoutName, npc)
-    for i, v in ipairs(globalData[layoutName].NPCs) do
-        if v == npc then
-            table.remove(globalData[layoutName].NPCs, i)
-            break
-        end
-    end
+    return globalData[layoutName].Collisions
 end
 
 main()

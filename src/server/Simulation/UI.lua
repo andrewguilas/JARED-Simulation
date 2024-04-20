@@ -142,9 +142,8 @@ end
 
 function module:updateHeatmap()
     -- local positions = DataCollection.getPositions(self.LayoutName)
-    local positions = DataCollection.getCumulativePositions(self.LayoutName)
-    for _, coordinate in pairs(positions) do
-        local index = string.format("%s.%s", coordinate.X, coordinate.Y)
+    local positions = DataCollection.getCollisions(self.LayoutName)
+    for index, coordinate in pairs(positions) do
         local node = self.Layout.Heatmap:FindFirstChild(index)
         if node == nil then
             node = Instance.new("Frame")
