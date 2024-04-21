@@ -21,24 +21,6 @@ local function formatStopwatch(seconds)
     return string.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
 end
 
-local function getGradientColor(percentage)
-    -- Ensure the percentage is within the valid range
-    percentage = math.max(0, math.min(100, percentage))
-    
-    -- Define RGB values for green and red
-    local green = {0, 255, 0}
-    local red = {255, 0, 0}
-    
-    -- Interpolate between green and red based on the percentage
-    local color = {}
-    for i = 1, 3 do
-        color[i] = math.floor(green[i] + (red[i] - green[i]) * (percentage / 100))
-    end
-    
-    -- Return the interpolated color
-    return Color3.fromRGB(color[1], color[2], color[3])
-end
-
 function module.new(ui, cafeteriaModel)
     local self = setmetatable({
         UI = ui,

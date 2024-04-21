@@ -25,7 +25,8 @@ function module.new(cafeteriaModel, templates)
     local self = setmetatable({
         CafeteriaModel = cafeteriaModel,
         SpawnArea = cafeteriaModel.Floor.SpawnArea,
-        DespawnArea = cafeteriaModel.Floor.DespawnArea,
+        DespawnArea1 = cafeteriaModel.Floor.DespawnArea1,
+        DespawnArea2 = cafeteriaModel.Floor.DespawnArea2,
         DisposalAreas = {},
         Seats = {},
         Templates = {
@@ -96,7 +97,7 @@ function module:spawnStudentsEntrance()
 
             local newStudent = Student.new(self.TotalStudentCount, self.CafeteriaModel)
             newStudent:spawnEntrance(self.Templates.Student, self.SpawnArea)
-            newStudent:getFood(self.DespawnArea)
+            newStudent:getFood(self.DespawnArea2)
             newStudent:despawn()
 
             DataCollection.addEnterDuration(self.CafeteriaModel.Name, os.time() - startTime)
@@ -116,7 +117,7 @@ function module:despawnStudents(students)
 
             student:exitSeat()
             student:disposeTrash(self.DisposalAreas, PARAMETERS.STUDENT.DISPOSING_DURATION)
-            student:exitRoom(self.SpawnArea)
+            student:exitRoom(self.DespawnArea1)
             student:despawn()
 
             DataCollection.addExitDuration(self.CafeteriaModel.Name, os.time() - startTime)

@@ -20,7 +20,7 @@ local function main()
         print(string.format("Starting simulation in %s seconds...", seconds))
         task.wait(1)
     end
-    
+
     for layoutName, _ in pairs(PARAMETERS.SIMULATION.LAYOUTS) do
         local cafeteria = Workspace:FindFirstChild(layoutName) or layouts[layoutName]:Clone()
         cafeteria.Parent = Workspace

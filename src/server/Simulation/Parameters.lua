@@ -9,15 +9,16 @@ return {
                 IMAGE_ID = "rbxassetid://17195970077",
                 LAYOUT_ORDER = 2,
             }, 
+            --[[
             ["ONE_WAY_SAME_SIDE"] = {
                 IMAGE_ID = "rbxassetid://17212371736",
                 LAYOUT_ORDER = 3,
-            }, 
+            },]]
         },
-        ENTER_AMOUNT = 100,
+        ENTER_AMOUNT = 50,
         ENTER_RATE = 2,
         EXIT_AMOUNT = 50,
-        EXIT_RATE = 1,
+        EXIT_RATE = 2,
         MAX_CAPACITY = 150,
         LOG_OUTPUT = false,
     },

@@ -78,7 +78,10 @@ local function checkCollision(character, npcStorage)
 
 	character:SetAttribute("LookingAt", otherNPC.Name)
 
-	-- print(character:GetAttribute("LookingAt"), otherNPC.Name, otherNPC:GetAttribute("LookingAt"), character.Name)
+	if character:GetAttribute("LookingAt") == otherNPC.Name and otherNPC:GetAttribute("LookingAt") == character.Name then
+		DataCollection.addCollision(npcStorage.Parent.Name, character)
+		-- return otherNPC, raycastResult.Distance
+	end
 
 	-- if npc spawned first (has a lower id), go through them
 	if character:GetAttribute("ID") < otherNPC:GetAttribute("ID") then	
@@ -199,18 +202,18 @@ function module:updateWalkSpeed()
 			return
 		end
 
+		local m = PARAMETERS.SIMULATION.LAYOUTS[self.CafeteriaModel.Name].WALK_SPEED_CONSTANT or 1
+
 		local currentStoppedDuration = self.Character:GetAttribute("StoppedDuration")
 		local otherNPC, distance = checkCollision(self.Character, self.CafeteriaModel.NPCs)
 		if otherNPC and currentStoppedDuration < 10 then
 			self.Character.Head.BrickColor = BrickColor.new("Really red")
 			local newWalkSpeed = calculateWalkSpeed(distance)
-			self.Humanoid.WalkSpeed = newWalkSpeed
+			self.Humanoid.WalkSpeed = newWalkSpeed * m
 
 			if newWalkSpeed > 0 then
 				self.Character:SetAttribute("StoppedDuration", currentStoppedDuration + PARAMETERS.STUDENT.UPDATE_DELAY)
 			end
-
-			DataCollection.addCollision(self.CafeteriaModel.Name, self.Character)
 		else
 			-- slowly accelerate
 			if self.Humanoid.WalkSpeed == 0 then
@@ -219,7 +222,7 @@ function module:updateWalkSpeed()
 
 			self.Character.Head.BrickColor = BrickColor.new("Bright yellow")
 			self.Character:SetAttribute("StoppedDuration", 0)
-			self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED
+			self.Humanoid.WalkSpeed = PARAMETERS.STUDENT.MAX_WALK_SPEED * m
 		end
 
 
