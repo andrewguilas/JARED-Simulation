@@ -21,7 +21,11 @@ local function main()
         task.wait(1)
     end
 
-    for layoutName, _ in pairs(PARAMETERS.SIMULATION.LAYOUTS) do
+    for layoutName, SIMULATION_PARAMETERS in pairs(PARAMETERS.SIMULATION.LAYOUTS) do
+        if SIMULATION_PARAMETERS.ENABLED == false then
+            continue
+        end
+
         local cafeteria = Workspace:FindFirstChild(layoutName) or layouts[layoutName]:Clone()
         cafeteria.Parent = Workspace
 

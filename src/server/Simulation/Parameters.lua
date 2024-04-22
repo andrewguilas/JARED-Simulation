@@ -2,18 +2,20 @@ return {
     SIMULATION = {
         LAYOUTS = {
             ["TWO_WAY"] = {
+                ENABLED = true,
                 IMAGE_ID = "rbxassetid://17195958646",
                 LAYOUT_ORDER = 1,
             },
             ["ONE_WAY"] = {
+                ENABLED = true,
                 IMAGE_ID = "rbxassetid://17195970077",
                 LAYOUT_ORDER = 2,
             }, 
-            --[[
             ["ONE_WAY_SAME_SIDE"] = {
+                ENABLED = true,
                 IMAGE_ID = "rbxassetid://17212371736",
                 LAYOUT_ORDER = 3,
-            },]]
+            },
         },
         ENTER_AMOUNT = 50,
         ENTER_RATE = 2,

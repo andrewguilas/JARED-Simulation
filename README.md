@@ -1,24 +1,25 @@
 # JARED Simulation
 
-A foot traficc simulation of a cafeteria in ROBLOX
+A foot trafic simulation of a cafeteria in ROBLOX
+
+## RONIT USE TRIAL5.CSV AND BEYOND
 
 ## To Do
 - [x] Make NPC change speeds with equation
 - [x] Make NPC's change color depending on speed
-- [ ] Create friend groups
+- [x] Create friend groups
 - [x] Build cafeteria
-- [ ] Fix NPC's stopping at start of serving line
-- [ ] Multiple trips to station
-- [ ] Interact with random stations (instead of all of them)
+- [x] Fix NPC's stopping at start of serving line
+- [ ] Multiple trips to station (canceled)
+- [ ] Interact with random stations (instead of all of them) (canceled)
 
-## Variables
+## Independent Variables
 
-- Two or one way doors
+- Two way doors with disposals on both ends
+- One way doors with disposals on one end, opposite
+- One way doors with disposals on one end, adjacent
 
-## Constants
+## Dependent Variables
 
-- Rate students enter the cafeteria on average
-- How long students spend at each station on average
-- How long students eat on average
-- How big are friend groups on average
-- How many 
+- Rate average entrance & exit durations
+- Heatmap of most collisions
