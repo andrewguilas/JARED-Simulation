@@ -6,16 +6,22 @@ return {
                 IMAGE_ID = "rbxassetid://17195958646",
                 LAYOUT_ORDER = 1,
             },
+            ["TWO_WAY_FAR"] = {
+                ENABLED = true,
+                IMAGE_ID = "rbxassetid://17250608265",
+                LAYOUT_ORDER = 2,
+            },
             ["ONE_WAY"] = {
                 ENABLED = true,
                 IMAGE_ID = "rbxassetid://17195970077",
-                LAYOUT_ORDER = 2,
+                LAYOUT_ORDER = 3,
             }, 
             ["ONE_WAY_SAME_SIDE"] = {
-                ENABLED = true,
+                ENABLED = false,
                 IMAGE_ID = "rbxassetid://17212371736",
-                LAYOUT_ORDER = 3,
+                LAYOUT_ORDER = 4,
             },
+
         },
         ENTER_AMOUNT = 50,
         ENTER_RATE = 2,
