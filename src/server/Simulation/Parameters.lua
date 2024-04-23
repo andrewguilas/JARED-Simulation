@@ -7,7 +7,7 @@ return {
                 LAYOUT_ORDER = 1,
             },
             ["TWO_WAY_FAR"] = {
-                ENABLED = true,
+                ENABLED = false,
                 IMAGE_ID = "rbxassetid://17250608265",
                 LAYOUT_ORDER = 2,
             },
@@ -17,7 +17,7 @@ return {
                 LAYOUT_ORDER = 3,
             }, 
             ["ONE_WAY_SAME_SIDE"] = {
-                ENABLED = false,
+                ENABLED = true,
                 IMAGE_ID = "rbxassetid://17212371736",
                 LAYOUT_ORDER = 4,
             },

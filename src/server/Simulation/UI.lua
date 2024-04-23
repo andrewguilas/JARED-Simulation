@@ -14,11 +14,10 @@ local PARAMETERS = require(script.Parent.Parameters)
 local DataCollection = require(script.Parent.DataCollection)
 
 local function formatStopwatch(seconds)
-    local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
     local remainingSeconds = seconds % 60
     
-    return string.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
+    return string.format("%02d:%02d", minutes, remainingSeconds)
 end
 
 function module.new(ui, cafeteriaModel)
@@ -122,7 +121,7 @@ function module:updateStats()
     self.Layout.Stats.FPS.Text = string.format("%s FPS", fps)
     self.Layout.Stats.Capacity.Text = string.format("%s/%s", studentCount, maxCapacity)
     self.Layout.Stats.RunTime.Text = string.format("%s", duration)
-    self.Layout.Stats.AverageTimes.Text = string.format("%s-%s", math.round(averageEnterDuration), math.round(averageExitDuration))
+    self.Layout.Stats.AverageTimes.Text = string.format("IN: %ss / OUT: %ss", math.round(averageEnterDuration), math.round(averageExitDuration))
 end
 
 function module:updateHeatmap()
